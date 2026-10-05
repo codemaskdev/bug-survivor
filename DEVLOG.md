@@ -32,3 +32,21 @@ Added Null Pointer bugs: tiny two-frame red-pink pixel sprites that rotate to fa
 What broke: two bugs on the first try. (1) The glitch effect was supposed to hit about 12% of frames, but in screenshots half the swarm was glitching all the time. The hash returned a *signed* 32-bit number, so every negative value counted as "glitch": measured rate 62%. A single `>>> 0` brought it down to 11.9%. (2) Pressing R on BUILD FAILED did nothing. A quick tap pressed and released the key between two simulation steps, so `keys.has('KeyR')` never saw it. Now the keydown handler latches a `restartPressed` flag. I checked determinism with a headless node run: 90 s of autoplay with seed 1 twice gave the exact same position, HP, wave and deaths; seed 2 went differently. Known gap: bugs never die yet, so they pile up (50 alive by wave 5). That's for the weapons step.
 
 Commit: `baf37f9`
+
+## 18:20 — The keyboard fights back
+
+> CodeMask needs a way to fight back. Give it a keyboard.
+>
+> Pressing Space (or J) swings a keyboard in a short arc in front of
+> CodeMask, in the direction it's facing. Bugs caught in the swing get
+> smashed. Make it feel good: a "CLACK!" pop-up, a few keycaps flying
+> off, a tiny screen shake.
+>
+> Add a short cooldown so you can't just spam it. In autoplay, the bot
+> should swing when bugs get close.
+
+Space or J swings a little pixel keyboard through a 135° arc in the direction CodeMask last moved, with a cyan swoosh trail; every bug inside the arc gets smashed and the swing has a 0.45 s cooldown. Each smash throws off spinning keycaps with letters on them and red bug bits, pops a yellow "CLACK!" (or "CLACK! x3" for multi-hits) and shakes the screen a bit; a SMASHED counter sits under the HP bar. In autoplay the bot turns to the nearest bug in reach and swings; effects use their own seeded RNG stream, so the juice never changes the gameplay.
+
+What surprised me: the browser tab was in the background this time, so `requestAnimationFrame` stopped and real key presses never reached the page. I tested by stepping `update()` by hand and firing synthetic key events instead. Space was also the restart key, so holding it while dying would skip BUILD FAILED; restart is now R or Enter only. The bot went from dying in wave 2 to surviving 90 s with 254 bugs smashed — bugs still pile up faster than it kills them, though.
+
+Commit: `03a5827`
