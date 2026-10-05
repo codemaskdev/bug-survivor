@@ -1,0 +1,49 @@
+{
+  "seconds": 90,
+  "runs": {
+    "seed1": {
+      "hash": "01ff46247ebfda84",
+      "canvasCalls": 15760519,
+      "hud": [
+        "AUTOPLAY  seed 1   WAVE 13",
+        "HP 90",
+        "SMASHED 276",
+        "LINTER 3  ·  MECHANICAL KEYBOARD 5  ·  COFFEE 2",
+        "LVL 11   35/45 commits"
+      ]
+    },
+    "seed2": {
+      "hash": "dfa323cb2cd0288d",
+      "canvasCalls": 28058271,
+      "hud": [
+        "AUTOPLAY  seed 2   WAVE 13",
+        "HP 63",
+        "SMASHED 208",
+        "LINTER 5  ·  MECHANICAL KEYBOARD 2  ·  COFFEE 1",
+        "LVL 9   28/37 commits"
+      ]
+    },
+    "seed7": {
+      "hash": "724dda567b04e55e",
+      "canvasCalls": 23615830,
+      "hud": [
+        "AUTOPLAY  seed 7   WAVE 13",
+        "HP 16",
+        "SMASHED 281",
+        "LINTER 3  ·  MECHANICAL KEYBOARD 5  ·  COFFEE 2",
+        "LVL 11   1/45 commits"
+      ]
+    },
+    "manual": {
+      "hash": "ff17d4dbc8436943",
+      "canvasCalls": 3495497,
+      "hud": [
+        "WAVE 3",
+        "HP 30",
+        "SMASHED 15",
+        "LINTER 1  ·  MECHANICAL KEYBOARD 1",
+        "LVL 3   0/13 commits"
+      ]
+    }
+  }
+}

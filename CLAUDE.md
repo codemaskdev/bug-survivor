@@ -35,6 +35,15 @@ Be honest. Never invent or exaggerate problems for drama: if nothing
 broke, write "nothing broke". Real failures matter, made-up ones ruin
 the video.
 
+## Replay check
+- Run `node tools/replay-check.mjs` after every refactor. It replays the
+  game headlessly (autoplay seeds 1, 2, 7 and a scripted human, 90 s each)
+  and compares a hash of every canvas call against tools/replay-golden.json.
+  A refactor must pass with no changes to the golden file.
+- After an intentional gameplay or visual change, re-record the baseline
+  with `node tools/replay-check.mjs --update` and commit the new golden
+  file together with that change.
+
 ## Autoplay mode
 - Opening index.html?autoplay=1 (via `npx serve`) starts a demo where the
   player moves and fights by itself, for recording gameplay footage.
