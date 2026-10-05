@@ -240,6 +240,6 @@ Commit: `921d982`
 
 git revert is the first rare card: it has a quarter of the normal weight in the pool and a gold frame with a RARE tag. Once picked, it fires 2 s later and then every 30 s (15% sooner per level, never under 12 s): a red flash and a scanline sweep up the arena, "$ git revert HEAD" pops up, and every bug on screen vanishes in red bits. Two calls I made myself: reverted bugs drop no commits (they "never happened", and it would be a huge XP fountain otherwise), and a "git revert in 12s" countdown sits at the bottom right of the HUD.
 
-What surprised me: with seven upgrades the autoplay bot is weaker. In 180 s headless runs on five seeds it now dies around 70–80 s in almost every run, where before this prompt it lasted the full 90 s. It picks cards at random, so its levels end up thinly spread. Also, the revert's red flash freezes under the upgrade cards when a level-up lands in the same moment, because effects pause with the game.
+What surprised me: with seven upgrades the autoplay bot is weaker. In 180 s headless runs on five seeds it died first between 67 and 81 s in all five, where before this prompt it lasted the full 90 s. It picks cards at random, so its levels end up thinly spread. Also, the revert's red flash freezes under the upgrade cards when a level-up lands in the same moment, because effects pause with the game.
 
 Commit: `2f20504`
