@@ -636,3 +636,26 @@ The Pair Programmer is a buff 72×63 px bro (short hair, shades, beard, big arms
 What broke: the first sprite was the same size as CodeMask and looked hunched, so he got bigger, with real shoulders and arms. Then the orange guns melted into his orange outline, so they got a dark outline. Drawing guns aimed upward behind his body hid them completely, so that was reverted. Balance (16 seeds): without him nothing changed, and the replay check still matches byte for byte; the bot wins 8, dies 3 times, ruins the weekend 5 times. With backup the bot first won 10, then 9 after the redraw moved the muzzles. That's barely more, because the boss shots kept hitting small bugs in the way (26–42 damage of a possible 90). With piercing boss shots and 10 shots/s per gun instead of 6: 12 wins, 1 death, 3 ruined weekends.
 
 Commit: `ab9cd14`
+
+## 21:14 — Calm before the storm
+
+> Balance problem: I can only reach the boss by running away the whole
+> time. When I actually fight, I die around wave 19, just before 16:59.
+> Fighting should be the winning strategy, not running.
+>
+> - Calm before the storm: from about 16:58:45, stop spawning new bugs,
+>   let the arena clear, then the siren at 16:59.
+> - Coffee break: when the boss appears, restore 30% of CodeMask's HP,
+>   with a little "☕ coffee break" pop-up.
+> - Soften waves 15–20 a bit, that's where I die.
+> - Reward aggression: bugs smashed by the keyboard drop extra commits.
+>
+> Goal: a player who actively fights usually reaches the boss. Test it
+> with the autoplay bot in its fighting style, not the running one.
+> Re-record the replay-check baseline after.
+
+From FRI 16:58:45 no new waves start and the bugs still queued from the current wave are cancelled, so the 15 s before the siren are for clearing the arena. That means waves 19 and 20 never come.
+
+What broke: my tester. The plain fighter bot already reached the boss in 15/16 runs, so it doesn't reproduce "I die around wave 19 when I fight". I built a test-only fighter that always engages when its swing is ready, never runs from crowds, reacts with a 0.2 s delay and picks cards at random. On the old balance it died mostly in waves 15–20 (median about 105 s) and reached the boss in 6/16 runs, which matches the report. With the calm: 9/16.
+
+Commit: `45679c6`
