@@ -115,3 +115,16 @@ Split the 1584-line game.js into 29 modules under src/ (core, entities with one 
 What broke: nothing broke. All four runs matched the baseline hash on the first try, and a deliberate one-character change to the shake decay did change the hash, so the check works. One scare: a browser check showed 278 smashed instead of 276, but the old game.js was off too (285) when checked the same way. My test had let a few frames run before it started counting. With both versions started the same way, Chrome gave identical results.
 
 Commit: `ec06efc`
+
+## 18:50 — Replay check as a real tool
+
+> Yes, add the replay check to tools/replay-check.mjs with the golden
+> hashes in a file next to it. Add an --update flag to re-record the
+> baseline after intentional changes. Mention it in CLAUDE.md: run it
+> after every refactor.
+
+`node tools/replay-check.mjs` runs four 90-second headless replays in parallel (autoplay seeds 1, 2, 7 and a scripted human), hashes every canvas call and compares against tools/replay-golden.json; `--update` re-records it. It runs in about 10 seconds, uses only Node built-ins, and CLAUDE.md now says to run it after every refactor and to commit a new golden file with intentional changes.
+
+What broke: nothing broke. The freshly recorded golden hashes are identical to the ones I recorded before the refactor, and a one-digit tweak to the screen shake made all four scenarios fail even though the HUD numbers stayed the same.
+
+Commit: `ef0451b`
