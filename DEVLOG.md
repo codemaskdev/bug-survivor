@@ -289,3 +289,24 @@ The bot now fights in rhythm with its keyboard: while the swing is ready (and HP
 What surprised me: my first open-world bot circled the swarm at 150 px and barely fought (18–56 smashes in 180 s), because the keyboard only reaches about 60 px. I wrote a benchmark (time to first death and smashes, 8 seeds, 240 s) and compared versions. Before this prompt (arena, random cards) it averaged 86 s and 373 smashes, inflated by one seed that never died and made 1874; the open world with the old bot averaged 201 s but only 56 smashes, because it just ran. The final bot averages 157 s and 167 smashes. I tried five tuning variants: the HP > 40 rule gave the best mix (157 s, 167 smashes); running at 4 nearby bugs instead of 6 also lived longer (148 s) but fought much less (103 smashes); the other three landed at 131 s, 131 s and 123 s, against 123 s untuned, which is within the noise.
 
 Commit: `c5c8462`
+
+## 19:36 — Balance for a 3-minute run
+
+> I played the open world: I usually die around wave 11, about one minute
+> in. Everything piles on me at once.
+>
+> Balance target for a 3-minute run (FRI 16:57 → 17:00):
+> - A decent player should usually survive until 16:59 (2:00) to meet
+>   the boss, which will come next.
+> - The first minute should feel manageable, the second minute intense.
+> - Tune spawn rate, wave growth, bug HP and upgrade strength to hit this.
+>   Don't make it trivial.
+>
+> Use the autoplay bot as a stand-in tester: report how long it survives
+> before and after. Re-record the replay-check baseline after.
+
+A wave no longer dumps all its bugs at once: they trickle in, shuffled, over its 6 seconds. Waves start smaller and grow faster later (Null Pointers per wave: 3 → 2 at wave 1, 24 → 8 at wave 10, 22 at wave 20), the extra species come one or two at a time, bug HP grows every 7 waves instead of 4, early Null Pointers are slower (full speed from 1:30), Null Pointer hits do 8 instead of 10, invulnerability after a hit is 1.0 s instead of 0.7 s, and Memory Leaks hit softer and bounce off further. Upgrade strength is unchanged. Autoplay bot, 8 seeds × 180 s, before → after: reached 2:00 in 5/8 → 8/8 runs, survived 3:00 in 3/8 → 5/8; bugs within 200 px per 30 s window went from 2, 13, 28, 33, 32, 29 to 0, 2, 6, 15, 23, 29, and damage taken in the first minute from 26 to 0.
+
+What broke: my "human-like" tester. I gave the bot a 0.45 s reaction delay and random card picks so it died around 57 s on the old balance, like the real player. But on the new balance it still took most of its damage with only about 3 bugs nearby: the delay makes it charge blindly into bugs. So it measures clumsiness, not crowding, and never reached 2:00 in any version (median 57 s before, about 88 s after). I used crowd density instead: the player died at about 13 bugs nearby, and that now happens at the end of the second minute.
+
+Commit: `4da3a0a`
