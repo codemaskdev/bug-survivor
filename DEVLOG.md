@@ -170,3 +170,13 @@ Unit Tests puts little green ✓ shields in orbit around CodeMask (two at level 
 What surprised me: on seed 1 the bot now dies at 83 s (wave 12), where before it survived the whole 90 s. Unit Tests isn't the cause: the bot happened never to be offered or pick Linter this time, because it now chooses from 3 random cards instead of always seeing all of them. Seeds 2 and 7 still survive.
 
 Commit: `69d3b9d`
+
+## 18:56 — Fix: replay check summary lost the upgrades line
+
+(No new prompt: found while working on the prompt above.)
+
+Right after the previous commit, the replay check's readable summary was missing the owned-upgrades line. My pattern expected one space after the "·" separator, but the HUD uses two. Fixed the pattern and re-recorded the golden file.
+
+What broke: only the summary text was wrong; the hashes were never affected, so no check gave a wrong pass or fail.
+
+Commit: `a8dfe27`
