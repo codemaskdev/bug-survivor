@@ -52,6 +52,17 @@ export const UPGRADES = [
       ? 'A duck buddy follows you and pecks the nearest bug.'
       : 'The duck pecks faster and harder. Squeak!',
   },
+  {
+    key: 'revert',
+    name: 'git revert',
+    short: 'REVERT',
+    rare: true,
+    weight: 0.25,
+    level: 0,
+    describe: (lv) => lv === 0
+      ? 'Every 30s, wipes every bug on screen.'
+      : `Reverts more often: every ${Math.round(Math.max(12, 30 * Math.pow(0.85, lv)))}s.`,
+  },
 ];
 export const UP = Object.fromEntries(UPGRADES.map((u) => [u.key, u]));
 

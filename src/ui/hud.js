@@ -5,6 +5,7 @@ import { game } from '../core/state.js';
 import { player } from '../entities/player.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
+import { revertCountdown } from '../weapons/revert.js';
 
 export function drawHud() {
   ctx.fillStyle = 'rgba(0, 240, 255, 0.55)';
@@ -47,6 +48,13 @@ export function drawHud() {
   ctx.restore();
   ctx.fillStyle = 'rgba(57, 255, 136, 0.8)';
   ctx.fillText(`LVL ${game.level}   ${game.xp}/${xpToNext()} commits`, 16, ARENA_H - 38);
+  const revertIn = revertCountdown();
+  if (revertIn !== null) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(240, 80, 51, 0.85)';
+    ctx.fillText(`git revert in ${Math.ceil(revertIn)}s`, ARENA_W - 16, ARENA_H - 38);
+    ctx.textAlign = 'left';
+  }
 
   // Red flash when hit
   if (game.hitFlash > 0) {

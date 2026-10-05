@@ -81,14 +81,25 @@ export function drawUpgradeCards() {
     ctx.globalAlpha = slide;
     ctx.fillStyle = selected ? '#0f1a22' : '#0b0d13';
     ctx.fillRect(r.x, y, r.w, r.h);
-    ctx.strokeStyle = selected ? '#00f0ff' : 'rgba(0, 240, 255, 0.35)';
+    // Rare cards get a gold frame instead of cyan
+    const frame = u.rare ? '#ffd23f' : '#00f0ff';
+    ctx.strokeStyle = selected ? frame : (u.rare ? 'rgba(255, 210, 63, 0.6)' : 'rgba(0, 240, 255, 0.35)');
     ctx.lineWidth = 2;
-    if (selected) {
-      ctx.shadowColor = '#00f0ff';
+    if (selected || u.rare) {
+      ctx.shadowColor = frame;
       ctx.shadowBlur = 16;
     }
     ctx.strokeRect(r.x + 1, y + 1, r.w - 2, r.h - 2);
     ctx.shadowBlur = 0;
+    if (u.rare) {
+      ctx.fillStyle = '#ffd23f';
+      ctx.fillRect(r.x + r.w / 2 - 26, y - 9, 52, 18);
+      ctx.fillStyle = '#0b0d13';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('RARE', r.x + r.w / 2, y);
+    }
 
     drawIcon(u.key, r.x + r.w / 2, y + 60);
 
