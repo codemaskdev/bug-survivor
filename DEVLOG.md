@@ -71,3 +71,24 @@ Every dead bug drops a glowing green commit that drifts toward CodeMask when it 
 What surprised me: at Mechanical Keyboard 3 the "louder CLACK" was too loud — three overlapping 33px "CLACK!!!!" pop-ups and 12px shake made the screen unreadable, so the newest CLACK now replaces older ones nearby and size/shake are capped. One test said "linter kill dropped no commit"; turned out my synthetic ArrowRight was never released, so CodeMask had walked over and already picked it up. Headless check: 90 s of seed 1 is still identical run to run (9 level-ups, wave 13, no deaths).
 
 Commit: `6ddd65a`
+
+## 18:33 — Three new bug species
+
+> Time for more bug species. Introduce them gradually by wave, and when
+> a new species first appears, flash a banner like "NEW BUG: MEMORY LEAK".
+>
+> - Memory Leak (from wave 3): a slow purple blob that keeps growing the
+>   longer it lives. Bigger = more HP. Kill it early.
+> - Infinite Loop (from wave 5): circles around CodeMask at a distance
+>   instead of attacking, then suddenly dashes in.
+> - Merge Conflict (from wave 7): when hit, splits into two smaller
+>   conflicts. The small ones don't split again.
+>
+> Each species should be instantly recognizable by shape and color.
+> Keep Null Pointers as the basic swarm.
+
+Added three species, each with its own shape and color: Memory Leak is a wobbly purple pixel blob with googly eyes that grows from radius 8 to 34 and gains HP (and contact damage) as it grows; Infinite Loop is a spinning orange ↻ ring that orbits CodeMask at 140 px, stops and blinks white as a tell, then dashes in at 520 px/s; Merge Conflict is a blue "ours" half and a yellow "theirs" half that keep slipping out of alignment, and any hit splits it into a small blue `<` and a small yellow `>` that don't split again. They join by wave (3, 5, 7) in growing numbers, and the first time a species shows up a glitchy "NEW BUG: …" banner slides in with a one-line tip; the old Null Pointer is still the bulk of every wave.
+
+What surprised me: the swing that splits a Merge Conflict would instantly kill both halves too, so the split was invisible — the halves now inherit the swing's id and fly apart first. Bugs used to share one radius constant, so the swing, Linter, contact and separation code all had to switch to per-bug size before a 34 px leak could be hit at its edge. A headless test also showed bugs spawned at "wave 0" got 0 HP (harmless in the real game, but now clamped). Seed 1 is still deterministic and the bot survives 90 s.
+
+Commit: `68f3d5c`
