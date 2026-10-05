@@ -191,6 +191,13 @@ export function sfxRollback() {
   osc.stop(t + 1.05); lfo.stop(t + 1.05);
 }
 
+// Coffee break: two soft, warm notes
+export function sfxCoffee() {
+  if (!audio) return;
+  tone({ type: 'sine', from: 587, at: 0, dur: 0.25, vol: 0.1 });
+  tone({ type: 'sine', from: 880, at: 0.12, dur: 0.4, vol: 0.08 });
+}
+
 // Pair Programmer lands: a deep boom and a power chord
 export function sfxPairDrop() {
   if (!audio) return;

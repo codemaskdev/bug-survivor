@@ -2,11 +2,12 @@ import { VIEW_W, VIEW_H, STEP } from '../config.js';
 import { ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
 import { camera } from '../core/camera.js';
-import { playSiren } from '../fx/sound.js';
+import { playSiren, sfxCoffee } from '../fx/sound.js';
 import { shake } from '../fx/shake.js';
 import { smashFx, addPopup } from '../fx/particles.js';
 import { makeBug, clearSpawnQueue } from '../entities/bugs/index.js';
 import { updateAttacks, drawAttacks, resetAttacks } from './attacks.js';
+import { player, playerMaxHp } from '../entities/player.js';
 
 // The Friday Deploy: at 16:59 (two minutes in) the waves stop, the screen
 // flashes red, a siren wails, a warning goes up and the boss walks in.
@@ -14,6 +15,7 @@ export const BOSS_AT = 120;          // seconds into the run = FRI 16:59
 export const CALM_AT = 105;          // FRI 16:58:45: no new bugs, the calm before the storm
 const WARNING_TIME = 3;              // how long the warning stays up
 const ENTER_AT = 1.2;                // boss appears this far into the warning
+const COFFEE_HEAL = 0.3;             // fraction of max HP restored when the boss shows up
 
 const deploy = {
   phase: 'waiting',  // waiting -> warning -> fight
@@ -56,6 +58,11 @@ export function updateDeploy() {
       // Walks in from just above the top of the screen
       game.bugs.push(makeBug('friday', camera.x, camera.y - VIEW_H / 2 - 70));
       deploy.entered = true;
+      // Coffee break: CodeMask gets back 30% of its max HP for the fight
+      const max = playerMaxHp();
+      player.hp = Math.min(max, player.hp + Math.round(max * COFFEE_HEAL));
+      addPopup({ x: player.x, y: player.y - 40, text: '☕ coffee break', size: 16, life: 0.7, tilt: 0, color: '#ffd9a0' }, 30);
+      sfxCoffee();
     }
     if (deploy.t >= WARNING_TIME) {
       deploy.phase = 'fight';
