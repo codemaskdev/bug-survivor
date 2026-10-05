@@ -7,6 +7,7 @@ import { spawnWave, updateBugs, resetBugs } from '../entities/bugs/index.js';
 import { updateCommits } from '../entities/commits.js';
 import { startSwing, updateSwing, resetSwing } from '../weapons/keyboard.js';
 import { updateLinter, resetLinter } from '../weapons/linter.js';
+import { updateTests, resetTests } from '../weapons/unittests.js';
 import { resetUpgrades } from '../upgrades/upgrades.js';
 import { updateLevelup } from '../upgrades/levelup.js';
 import { readAutoplay, autoplaySwing, resetBot } from '../ai/bot.js';
@@ -24,6 +25,7 @@ export function resetGame() {
   resetShake();
   resetUpgrades();
   resetLinter();
+  resetTests();
   resetBot();
 }
 
@@ -64,6 +66,7 @@ export function update() {
 
   updateSwing();
   updateLinter();
+  updateTests();
   updateBugs();
   updateCommits();
   updateBanners();

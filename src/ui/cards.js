@@ -72,7 +72,7 @@ export function drawUpgradeCards() {
 
   const slide = Math.min(1, game.levelupTime * 5);
   for (let i = 0; i < 3; i++) {
-    const u = UPGRADES[i];
+    const u = UPGRADES[game.offer[i]];
     const r = cardRect(i);
     const selected = i === game.cardChoice;
     const y = r.y + (1 - slide) * 40 - (selected ? 8 : 0);

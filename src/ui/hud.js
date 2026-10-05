@@ -32,7 +32,7 @@ export function drawHud() {
   ctx.font = '11px monospace';
   ctx.fillText(`HP ${player.hp}`, x + w + 10, y - 1);
   ctx.fillText(`SMASHED ${game.smashed}`, x, y + 18);
-  const owned = UPGRADES.filter((u) => u.level > 0).map((u) => `${u.name.toUpperCase()} ${u.level}`);
+  const owned = UPGRADES.filter((u) => u.level > 0).map((u) => `${u.short} ${u.level}`);
   if (owned.length) ctx.fillText(owned.join('  ·  '), x, y + 34);
 
   // XP bar along the bottom edge

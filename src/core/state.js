@@ -17,6 +17,7 @@ export const game = {
   level: 1,
   levelupTime: 0,        // seconds since the upgrade cards appeared
   cardChoice: 1,         // highlighted card (0..2)
+  offer: [],             // indexes into UPGRADES of the cards on screen
   botPick: -1,           // the card the autoplay bot is going to take
 };
 

@@ -8,6 +8,7 @@ import { drawPlayer } from '../entities/player.js';
 import { drawBugs } from '../entities/bugs/index.js';
 import { drawSwing } from '../weapons/keyboard.js';
 import { drawLints } from '../weapons/linter.js';
+import { drawTests } from '../weapons/unittests.js';
 import { drawFx } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { drawHud } from '../ui/hud.js';
@@ -40,6 +41,7 @@ function frame(now) {
   drawBugs(simTime);
   drawSwing();
   drawLints();
+  drawTests();
   drawFx();
   ctx.restore();
 

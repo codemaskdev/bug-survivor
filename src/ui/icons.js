@@ -66,6 +66,27 @@ const ICONS = {
       '................',
     ],
   },
+  tests: {
+    colors: { G: '#5dff6a', g: '#0f3d1f', W: '#e6ffe9' },
+    rows: [
+      '................',
+      '..GGGGGGGGGGGG..',
+      '..GggggggggggG..',
+      '..GggggggggggG..',
+      '..GggggggggWgG..',
+      '..GgggggggWggG..',
+      '..GgWggggWgggG..',
+      '..GggWggWggggG..',
+      '..GgggWWgggggG..',
+      '...GggggggggG...',
+      '....GggggggG....',
+      '.....GggggG.....',
+      '......GGGG......',
+      '................',
+      '................',
+      '................',
+    ],
+  },
 };
 
 const ICON_PIXEL = 3;

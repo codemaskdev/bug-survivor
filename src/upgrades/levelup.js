@@ -6,18 +6,38 @@ import { input } from '../core/input.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from './upgrades.js';
 
-// A full XP bar pauses the game and shows the three upgrade cards.
+// A full XP bar pauses the game and shows three upgrade cards,
+// drawn from the pool by weight (rare cards have a small weight).
+
+const CARDS_SHOWN = 3;
+
+function drawOffer() {
+  const pool = UPGRADES.map((u, i) => i);
+  const offer = [];
+  while (offer.length < CARDS_SHOWN && pool.length) {
+    const total = pool.reduce((s, i) => s + (UPGRADES[i].weight ?? 1), 0);
+    let roll = rng() * total;
+    let k = 0;
+    while (k < pool.length - 1 && roll >= (UPGRADES[pool[k]].weight ?? 1)) {
+      roll -= UPGRADES[pool[k]].weight ?? 1;
+      k++;
+    }
+    offer.push(pool.splice(k, 1)[0]);
+  }
+  return offer;
+}
 
 export function openUpgradeCards() {
   game.state = 'levelup';
   game.levelupTime = 0;
   game.cardChoice = 1;
-  game.botPick = AUTOPLAY ? Math.floor(rng() * UPGRADES.length) : -1;
+  game.offer = drawOffer();
+  game.botPick = AUTOPLAY ? Math.floor(rng() * game.offer.length) : -1;
 }
 
 export function pickCard(i) {
   if (game.state !== 'levelup' || game.levelupTime < 0.3) return;
-  UPGRADES[i].level++;
+  UPGRADES[game.offer[i]].level++;
   game.state = 'playing';
   input.swingPressed = false;
   // Leftover XP might already fill the next bar
