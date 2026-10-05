@@ -122,7 +122,7 @@ export function damageBug(b, amount, fromKeyboard) {
   b.hp -= amount;
   if (b.hp > 0) {
     b.flash = 0.1;
-    b.stun = Math.max(b.stun, 0.15);
+    if (!b.boss) b.stun = Math.max(b.stun, 0.15);   // the boss can't be stun-locked
     return false;
   }
   game.smashed++;

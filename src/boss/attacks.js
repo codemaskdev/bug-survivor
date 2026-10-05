@@ -15,9 +15,9 @@ const FIRST_ATTACK = 2;      // seconds after the boss arrives
 const ATTACK_EVERY = 3.2;
 const HOTFIX_PACK = 6;
 const WINDUP = 0.6;          // the boss shakes this long before throwing 500s
-const BLOCK_SPEED = 230;
-const BLOCK_SPREAD = 0.28;   // radians between the three blocks
-const BLOCK_DAMAGE = 15;
+const BLOCK_SPEED = 200;
+const BLOCK_SPREAD = 0.45;   // radians between the three blocks: gaps you can slip through
+const BLOCK_DAMAGE = 12;
 const BLOCK_LIFE = 4;
 const BLOCK_W = 34, BLOCK_H = 18;
 const ROLLBACK_AT = 0.25;    // fraction of max HP that triggers it
@@ -80,7 +80,8 @@ export function updateAttacks(boss) {
     k.age += STEP;
     k.x += k.vx * STEP;
     k.y += k.vy * STEP;
-    const hit = Math.abs(player.x - k.x) < BLOCK_W / 2 + 8 && Math.abs(player.y - k.y) < BLOCK_H / 2 + 10;
+    // Hits only when the block visibly touches CodeMask
+    const hit = Math.abs(player.x - k.x) < BLOCK_W / 2 + 4 && Math.abs(player.y - k.y) < BLOCK_H / 2 + 4;
     if (hit && player.hurtTimer <= 0) {
       player.hp = Math.max(0, player.hp - BLOCK_DAMAGE);
       player.hurtTimer = HIT_COOLDOWN;

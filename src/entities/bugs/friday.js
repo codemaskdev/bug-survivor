@@ -6,7 +6,7 @@ import { moveToward } from './common.js';
 // The Friday Deploy boss: a giant, angry, neon-red calendar page.
 // It lives in the bug list like any other bug, so every weapon can hit it,
 // but it never shows up in waves (boss/deploy.js brings it in at 16:59).
-export const BOSS_HP = 400;
+export const BOSS_HP = 210;
 const P = 5;                 // size of one boss pixel
 const W = 26, H = 30;        // page size in boss pixels
 const RED = '#ff2e3e';
@@ -24,7 +24,7 @@ export const friday = {
     b.speed = 55;
     b.hp = BOSS_HP;
     b.maxHp = BOSS_HP;
-    b.damage = 20;
+    b.damage = 14;
     b.rage = 0;              // drives the shake when it's angry
   },
 

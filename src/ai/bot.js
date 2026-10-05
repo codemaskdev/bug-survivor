@@ -4,6 +4,7 @@ import { game } from '../core/state.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { player } from '../entities/player.js';
 import { swing, swingReach, startSwing } from '../weapons/keyboard.js';
+import { bossBlocks } from '../boss/attacks.js';
 
 // ---------- Autoplay brain (open world) ----------
 // Fights in rhythm with the keyboard: steps in toward the nearest bug while
@@ -42,10 +43,13 @@ export function readAutoplay() {
   // Only goes looking for a fight while the keyboard is ready and HP isn't low
   const ready = swing.cooldown <= 0.1 && player.hp > 40;
 
+  // The boss gets its own handling below; everything else is "the swarm"
+  const boss = game.bugs.find((b) => b.boss);
   let crowd = 0;
   let nearest = null, nearestD = Infinity;
   let sx = 0, sy = 0, sn = 0;
   for (const b of game.bugs) {
+    if (b.boss) continue;
     const d = Math.hypot(b.x - player.x, b.y - player.y);
     if (d < CROWD_RADIUS) crowd++;
     if (d < nearestD) { nearest = b; nearestD = d; }
@@ -58,6 +62,7 @@ export function readAutoplay() {
   const dangerR = surrounded ? 200 : ready ? 70 : 140;
   let ax = 0, ay = 0;
   for (const b of game.bugs) {
+    if (b.boss) continue;
     const dx = player.x - b.x, dy = player.y - b.y;
     const d = Math.hypot(dx, dy) || 1;
     if (d < dangerR + b.r) {
@@ -75,17 +80,19 @@ export function readAutoplay() {
       bot.orbitTimer = 4 + rng() * 4;
     }
     // Circle the swarm's center so it can't close in from all sides
+    // (less so during the boss fight: the boss is the priority then)
+    const orbitW = boss ? 0.3 : 0.7;
     const cx = sx / sn - player.x, cy = sy / sn - player.y;
     const cd = Math.hypot(cx, cy) || 1;
-    mx = (-cy / cd) * bot.orbit * 0.7;
-    my = (cx / cd) * bot.orbit * 0.7;
+    mx = (-cy / cd) * bot.orbit * orbitW;
+    my = (cx / cd) * bot.orbit * orbitW;
 
     // Step in to put the nearest bug inside the keyboard's reach
-    if (ready && !surrounded && nearestD > reach * 0.7) {
+    if (ready && !surrounded && nearestD > reach * 0.7 && (!boss || nearestD < 120)) {
       mx += ((nearest.x - player.x) / nearestD) * 1.2;
       my += ((nearest.y - player.y) / nearestD) * 1.2;
     }
-  } else {
+  } else if (!boss) {
     // Nothing around: stroll, changing heading every few seconds
     bot.wanderTimer -= STEP;
     if (bot.wanderTimer <= 0) {
@@ -94,6 +101,39 @@ export function readAutoplay() {
     }
     mx = Math.cos(bot.wanderAngle) * 0.6;
     my = Math.sin(bot.wanderAngle) * 0.6;
+  }
+
+  // Boss: close in to keyboard range while the swing is ready, back off
+  // while it recharges or while the boss winds up a throw, and keep
+  // circling it so the 500 blocks don't come down a straight line
+  if (boss) {
+    const dx = boss.x - player.x, dy = boss.y - player.y;
+    const dc = Math.hypot(dx, dy) || 1;
+    const edge = dc - boss.r;
+    const engage = swing.cooldown <= 0.25 && player.hp > 25 && !(boss.rage > 0);
+    const want = engage ? reach * 0.55 : reach * 1.1 + 10;
+    const k = Math.max(-1.5, Math.min(1.5, (edge - want) / 60));
+    mx += (dx / dc) * k * 2.5 + (-dy / dc) * bot.orbit * 0.6;
+    my += (dy / dc) * k * 2.5 + (dx / dc) * bot.orbit * 0.6;
+  }
+
+  // 500 blocks: if one is going to pass close in the next 0.8 s, step
+  // away from its path
+  for (const blk of bossBlocks()) {
+    const vv = blk.vx * blk.vx + blk.vy * blk.vy || 1;
+    const rx = player.x - blk.x, ry = player.y - blk.y;
+    const t = Math.max(0, Math.min(0.8, (rx * blk.vx + ry * blk.vy) / vv));
+    const cx = player.x - (blk.x + blk.vx * t), cy = player.y - (blk.y + blk.vy * t);
+    const miss = Math.hypot(cx, cy);
+    if (miss < 45) {
+      // Away from the closest point of its path; if dead on, sidestep
+      let ux = cx, uy = cy;
+      if (miss < 1) { ux = -blk.vy; uy = blk.vx; }
+      const len = Math.hypot(ux, uy) || 1;
+      const w = ((45 - miss) / 45) * 3;
+      ax += (ux / len) * w;
+      ay += (uy / len) * w;
+    }
   }
 
   // Commits: worth a detour when nothing is breathing down its neck
