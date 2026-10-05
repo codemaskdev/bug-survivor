@@ -10,6 +10,17 @@ const PIXEL = 3;            // size of one sprite pixel on screen
 const PLAYER_SPEED = 180;   // px per second
 const STEP = 1 / 60;        // fixed simulation step (keeps autoplay deterministic)
 
+const PLAYER_MAX_HP = 100;
+const PLAYER_RADIUS = 14;   // hitbox
+const HIT_COOLDOWN = 0.7;   // seconds of invulnerability after a hit
+
+const BUG_PIXEL = 2;
+const BUG_SPEED = 125;      // fast, but CodeMask can still outrun them
+const BUG_RADIUS = 6;
+const BUG_DAMAGE = 10;
+const FIRST_WAVE_AT = 1.5;  // seconds
+const WAVE_EVERY = 6;       // seconds between waves
+
 const params = new URLSearchParams(location.search);
 const AUTOPLAY = params.get('autoplay') === '1';
 const SEED = Number(params.get('seed')) || 1;
@@ -43,8 +54,10 @@ fitCanvas();
 
 // ---------- Input ----------
 const keys = new Set();
+let restartPressed = false;  // latched, so a quick tap between frames isn't lost
 window.addEventListener('keydown', (e) => {
   keys.add(e.code);
+  if (e.code === 'KeyR' || e.code === 'Enter' || e.code === 'Space') restartPressed = true;
   if (e.code.startsWith('Arrow')) e.preventDefault();
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
@@ -95,31 +108,169 @@ const player = {
   lookY: 0,
   walkTime: 0,
   moving: false,
+  hp: PLAYER_MAX_HP,
+  hurtTimer: 0,  // > 0 while invulnerable after a hit
 };
 
+// ---------- Game state ----------
+let state = 'playing';      // 'playing' | 'over'
+let bugs = [];
+let wave = 0;
+let nextWaveAt = FIRST_WAVE_AT;
+let roundTime = 0;          // seconds since this run started
+let overTime = 0;           // seconds since BUILD FAILED appeared
+let nextBugId = 0;
+let hitFlash = 0;           // red screen flash after taking damage
+
+function resetGame() {
+  player.x = ARENA_W / 2;
+  player.y = ARENA_H / 2;
+  player.lookX = 0;
+  player.lookY = 0;
+  player.hp = PLAYER_MAX_HP;
+  player.hurtTimer = 0;
+  bugs = [];
+  wave = 0;
+  nextWaveAt = FIRST_WAVE_AT;
+  roundTime = 0;
+  overTime = 0;
+  hitFlash = 0;
+  bot.tx = player.x;
+  bot.ty = player.y;
+  bot.wait = 0;
+  state = 'playing';
+}
+
+// ---------- Null Pointer bugs ----------
+// Each wave is bigger than the last and pours in from one or two edges.
+function spawnWave() {
+  wave++;
+  const count = 4 + wave * 2;
+  const edges = [Math.floor(rng() * 4)];
+  if (wave >= 3) edges.push(Math.floor(rng() * 4));
+  for (let i = 0; i < count; i++) {
+    const edge = edges[i % edges.length];
+    const t = rng();
+    let x, y;
+    if (edge === 0) { x = t * ARENA_W; y = -10; }               // top
+    else if (edge === 1) { x = ARENA_W + 10; y = t * ARENA_H; } // right
+    else if (edge === 2) { x = t * ARENA_W; y = ARENA_H + 10; } // bottom
+    else { x = -10; y = t * ARENA_H; }                          // left
+    bugs.push({
+      id: nextBugId++,
+      x, y,
+      angle: 0,
+      speed: BUG_SPEED * (0.85 + rng() * 0.3),
+      stun: 0,
+    });
+  }
+}
+
+function updateBugs() {
+  for (const b of bugs) {
+    const dx = player.x - b.x;
+    const dy = player.y - b.y;
+    const d = Math.hypot(dx, dy) || 1;
+    b.angle = Math.atan2(dy, dx);
+    if (b.stun > 0) {
+      b.stun -= STEP;
+    } else {
+      b.x += (dx / d) * b.speed * STEP;
+      b.y += (dy / d) * b.speed * STEP;
+    }
+
+    // Touching CodeMask: deal damage, get knocked back
+    if (d < PLAYER_RADIUS + BUG_RADIUS) {
+      if (player.hurtTimer <= 0) {
+        player.hp = Math.max(0, player.hp - BUG_DAMAGE);
+        player.hurtTimer = HIT_COOLDOWN;
+        hitFlash = 1;
+      }
+      b.x -= (dx / d) * 40;
+      b.y -= (dy / d) * 40;
+      b.stun = 0.25;
+    }
+  }
+
+  // Light separation so a swarm doesn't collapse into a single dot
+  for (let i = 0; i < bugs.length; i++) {
+    for (let j = i + 1; j < bugs.length; j++) {
+      const a = bugs[i], c = bugs[j];
+      const dx = c.x - a.x, dy = c.y - a.y;
+      const d = Math.hypot(dx, dy);
+      const min = BUG_RADIUS * 2;
+      if (d > 0 && d < min) {
+        const push = (min - d) / 2;
+        a.x -= (dx / d) * push; a.y -= (dy / d) * push;
+        c.x += (dx / d) * push; c.y += (dy / d) * push;
+      }
+    }
+  }
+}
+
 // ---------- Autoplay brain ----------
-// Wanders between random points in the arena, pausing now and then.
+// Wanders between random points in the arena, pausing now and then,
+// and steers away from any bug that gets too close.
 const bot = { tx: player.x, ty: player.y, wait: 0 };
+const BOT_FEAR_RADIUS = 110;
 
 function readAutoplay() {
-  if (bot.wait > 0) {
+  let fx = 0, fy = 0;
+  for (const b of bugs) {
+    const dx = player.x - b.x;
+    const dy = player.y - b.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 0 && d < BOT_FEAR_RADIUS) {
+      const w = (BOT_FEAR_RADIUS - d) / BOT_FEAR_RADIUS;
+      fx += (dx / d) * w;
+      fy += (dy / d) * w;
+    }
+  }
+  // Walls push back too, so fleeing doesn't end in a corner
+  const m = 80;
+  if (player.x < m) fx += (m - player.x) / m;
+  if (player.x > ARENA_W - m) fx -= (player.x - (ARENA_W - m)) / m;
+  if (player.y < m) fy += (m - player.y) / m;
+  if (player.y > ARENA_H - m) fy -= (player.y - (ARENA_H - m)) / m;
+  const scared = Math.hypot(fx, fy) > 0.05;
+
+  if (!scared && bot.wait > 0) {
     bot.wait -= STEP;
     return { x: 0, y: 0 };
   }
-  const dx = bot.tx - player.x;
-  const dy = bot.ty - player.y;
-  if (Math.hypot(dx, dy) < 6) {
+  let dx = bot.tx - player.x;
+  let dy = bot.ty - player.y;
+  let dist = Math.hypot(dx, dy);
+  if (dist < 6) {
     const margin = 60;
     bot.tx = margin + rng() * (ARENA_W - margin * 2);
     bot.ty = margin + rng() * (ARENA_H - margin * 2);
     bot.wait = rng() < 0.3 ? 0.3 + rng() * 0.6 : 0;
     return { x: 0, y: 0 };
   }
-  return { x: dx, y: dy };
+  dx /= dist;
+  dy /= dist;
+  return { x: dx * 0.6 + fx * 3, y: dy * 0.6 + fy * 3 };
 }
 
 // ---------- Update ----------
 function update() {
+  if (state === 'over') {
+    overTime += STEP;
+    // Autoplay keeps the demo rolling for recording
+    if (AUTOPLAY && overTime > 3) resetGame();
+    else if (!AUTOPLAY && overTime > 0.5 && restartPressed) resetGame();
+    restartPressed = false;
+    return;
+  }
+  restartPressed = false;
+
+  roundTime += STEP;
+  if (roundTime >= nextWaveAt) {
+    spawnWave();
+    nextWaveAt += WAVE_EVERY;
+  }
+
   const input = AUTOPLAY ? readAutoplay() : readKeyboard();
   const len = Math.hypot(input.x, input.y);
   player.moving = len > 0;
@@ -141,6 +292,17 @@ function update() {
   const halfH = SPRITE_H / 2;
   player.x = Math.max(halfW + 4, Math.min(ARENA_W - halfW - 4, player.x));
   player.y = Math.max(halfH + 4, Math.min(ARENA_H - halfH - 4, player.y));
+
+  if (player.hurtTimer > 0) player.hurtTimer -= STEP;
+  hitFlash = Math.max(0, hitFlash - STEP * 4);
+
+  updateBugs();
+
+  if (player.hp <= 0) {
+    state = 'over';
+    overTime = 0;
+    player.hurtTimer = 0;
+  }
 }
 
 // ---------- Draw ----------
@@ -188,7 +350,85 @@ function drawArena(time) {
   ctx.restore();
 }
 
+// Null Pointer bug, facing up (antennae on top).
+// a = antenna, r = shell, R = shell highlight, W = eye, l = leg
+const BUG_FRAMES = [
+  [
+    '.a...a.',
+    '..rWr..',
+    'lrRRRrl',
+    '.rRRRr.',
+    'lrRRRrl',
+    '..r.r..',
+  ],
+  [
+    'a.....a',
+    '..rWr..',
+    '.rRRRr.',
+    'lrRRRrl',
+    '.rRRRr.',
+    '.l.r.l.',
+  ],
+];
+const BUG_COLORS = {
+  a: '#ff2e63',
+  r: '#ff2e63',
+  R: '#ff6b95',
+  W: '#ffe3ec',
+  l: '#a3133b',
+};
+
+// Cheap deterministic hash, so the glitch effect never touches the game RNG
+function glitchNoise(id, tick) {
+  let h = (id * 374761393 + tick * 668265263) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+function drawBugSprite(frame, colors) {
+  const w = frame[0].length * BUG_PIXEL;
+  const h = frame.length * BUG_PIXEL;
+  for (let row = 0; row < frame.length; row++) {
+    for (let col = 0; col < frame[row].length; col++) {
+      const c = colors[frame[row][col]];
+      if (!c) continue;
+      ctx.fillStyle = c;
+      ctx.fillRect(col * BUG_PIXEL - w / 2, row * BUG_PIXEL - h / 2, BUG_PIXEL, BUG_PIXEL);
+    }
+  }
+}
+
+const GLITCH_CYAN = { a: '#00f0ff', r: '#00f0ff', R: '#00f0ff', W: '#00f0ff', l: '#00f0ff' };
+
+function drawBugs(time) {
+  const tick = Math.floor(time * 20);
+  for (const b of bugs) {
+    const frame = BUG_FRAMES[Math.floor(time * 12 + b.id) % 2];
+    const noise = glitchNoise(b.id, tick);
+    ctx.save();
+    ctx.translate(Math.round(b.x), Math.round(b.y));
+    ctx.rotate(b.angle + Math.PI / 2);
+
+    // Glitch: now and then the bug splits into a cyan ghost and jitters sideways
+    if (noise < 0.12) {
+      const jitter = (glitchNoise(b.id + 7, tick) - 0.5) * 6;
+      ctx.globalAlpha = 0.6;
+      ctx.translate(jitter, 0);
+      drawBugSprite(frame, GLITCH_CYAN);
+      ctx.translate(-jitter * 1.6, 0);
+      ctx.globalAlpha = 1;
+    }
+    ctx.shadowColor = '#ff2e63';
+    ctx.shadowBlur = 6;
+    drawBugSprite(frame, BUG_COLORS);
+    ctx.restore();
+  }
+}
+
 function drawPlayer(time) {
+  // Flicker while invulnerable after a hit
+  if (player.hurtTimer > 0 && Math.floor(player.hurtTimer * 20) % 2 === 0) return;
+
   // Little bounce while walking, slow breathing while idle
   const bob = player.moving
     ? Math.round(Math.abs(Math.sin(player.walkTime * 14)) * -1) * PIXEL
@@ -233,11 +473,59 @@ function drawHud() {
   ctx.font = '14px monospace';
   ctx.textBaseline = 'top';
   ctx.fillText('BUG SURVIVOR', 16, 14);
-  if (AUTOPLAY) {
-    ctx.textAlign = 'right';
-    ctx.fillText(`AUTOPLAY  seed ${SEED}`, ARENA_W - 16, 14);
-    ctx.textAlign = 'left';
+  ctx.textAlign = 'right';
+  ctx.fillText(AUTOPLAY ? `AUTOPLAY  seed ${SEED}   WAVE ${wave}` : `WAVE ${wave}`, ARENA_W - 16, 14);
+  ctx.textAlign = 'left';
+
+  // Health bar
+  const x = 16, y = 36, w = 200, h = 10;
+  const frac = player.hp / PLAYER_MAX_HP;
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
+  ctx.fillRect(x, y, w, h);
+  ctx.save();
+  ctx.fillStyle = frac > 0.3 ? '#00f0ff' : '#ff2e63';
+  ctx.shadowColor = ctx.fillStyle;
+  ctx.shadowBlur = 8;
+  ctx.fillRect(x, y, Math.round(w * frac), h);
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+  ctx.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.55)';
+  ctx.font = '11px monospace';
+  ctx.fillText(`HP ${player.hp}`, x + w + 10, y - 1);
+
+  // Red flash when hit
+  if (hitFlash > 0) {
+    ctx.fillStyle = `rgba(255, 46, 99, ${hitFlash * 0.18})`;
+    ctx.fillRect(0, 0, ARENA_W, ARENA_H);
   }
+}
+
+function drawGameOver() {
+  ctx.fillStyle = `rgba(5, 6, 10, ${Math.min(0.75, overTime * 2)})`;
+  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 64px monospace';
+  // Glitchy title: a cyan ghost that jitters behind the red text
+  const j = (glitchNoise(1, Math.floor(overTime * 15)) - 0.5) * 8;
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
+  ctx.fillText('BUILD FAILED', ARENA_W / 2 + j, ARENA_H / 2 - 10);
+  ctx.fillStyle = '#ff2e63';
+  ctx.shadowColor = '#ff2e63';
+  ctx.shadowBlur = 20;
+  ctx.fillText('BUILD FAILED', ARENA_W / 2, ARENA_H / 2 - 10);
+  ctx.shadowBlur = 0;
+
+  ctx.font = '16px monospace';
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.8)';
+  ctx.fillText(`survived ${roundTime.toFixed(1)}s  ·  reached wave ${wave}`, ARENA_W / 2, ARENA_H / 2 + 44);
+  if (!AUTOPLAY && Math.floor(overTime * 2) % 2 === 0) {
+    ctx.fillText('press R to rebuild', ARENA_W / 2, ARENA_H / 2 + 74);
+  }
+  ctx.restore();
 }
 
 // ---------- Main loop ----------
@@ -255,7 +543,9 @@ function frame(now) {
   }
   drawArena(simTime);
   drawPlayer(simTime);
+  drawBugs(simTime);
   drawHud();
+  if (state === 'over') drawGameOver();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
