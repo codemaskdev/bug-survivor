@@ -222,3 +222,24 @@ Rubber Duck adds a little yellow pixel duck that follows behind CodeMask, then f
 What surprised me: I wrote `player.facingSign()` for which side the duck should trail on, a function that doesn't exist; caught it reading the code before the first run and used `player.lookX` instead. Also, two of the three autoplay seeds now die late in the run (seed 1 at 63 s with a level-1 duck, seed 7 at 81 s without one). Every new card shifts which cards the bot is offered and which it randomly picks, so its builds and its luck change from commit to commit.
 
 Commit: `921d982`
+
+## 19:02 — git revert (rare)
+
+> More upgrades for the card pool:
+>
+> - Unit Tests: shields orbiting CodeMask that smash bugs on contact.
+>   More levels = more shields.
+> - Code Review: every few seconds, a pulse wave around CodeMask that
+>   damages and pushes back all nearby bugs.
+> - Rubber Duck: a little duck companion that follows CodeMask and pecks
+>   the nearest bug. Squeaks when it hits.
+> - git revert: every 30 seconds, wipes all bugs on screen. Rare card.
+>
+> Also replace the emoji icons on all cards with small pixel-art icons
+> drawn in code, matching the game's neon style.
+
+git revert is the first rare card: it has a quarter of the normal weight in the pool and a gold frame with a RARE tag. Once picked, it fires 2 s later and then every 30 s (15% sooner per level, never under 12 s): a red flash and a scanline sweep up the arena, "$ git revert HEAD" pops up, and every bug on screen vanishes in red bits. Two calls I made myself: reverted bugs drop no commits (they "never happened", and it would be a huge XP fountain otherwise), and a "git revert in 12s" countdown sits at the bottom right of the HUD.
+
+What surprised me: with seven upgrades the autoplay bot is weaker. In 180 s headless runs on five seeds it now dies around 70–80 s in almost every run, where before this prompt it lasted the full 90 s. It picks cards at random, so its levels end up thinly spread. Also, the revert's red flash freezes under the upgrade cards when a level-up lands in the same moment, because effects pause with the game.
+
+Commit: `2f20504`
