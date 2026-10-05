@@ -9,6 +9,7 @@ import { drawBugs } from '../entities/bugs/index.js';
 import { drawSwing } from '../weapons/keyboard.js';
 import { drawLints } from '../weapons/linter.js';
 import { drawTests } from '../weapons/unittests.js';
+import { drawReview } from '../weapons/review.js';
 import { drawFx } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { drawHud } from '../ui/hud.js';
@@ -36,6 +37,7 @@ function frame(now) {
   ctx.save();
   ctx.translate(Math.round(shake.x), Math.round(shake.y));
   drawArena(simTime);
+  drawReview();
   drawCommits(simTime);
   drawPlayer(simTime);
   drawBugs(simTime);

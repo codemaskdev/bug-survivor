@@ -34,6 +34,15 @@ export const UPGRADES = [
       ? 'Two shields orbit CodeMask and smash bugs on contact.'
       : `One more orbiting shield (${Math.min(8, lv + 2)} total).`,
   },
+  {
+    key: 'review',
+    name: 'Code Review',
+    short: 'REVIEW',
+    level: 0,
+    describe: (lv) => lv === 0
+      ? 'Every 4s a pulse damages and pushes back nearby bugs.'
+      : `Pulses every ${Math.max(1.5, 4 - lv * 0.5)}s, reaches further.`,
+  },
 ];
 export const UP = Object.fromEntries(UPGRADES.map((u) => [u.key, u]));
 

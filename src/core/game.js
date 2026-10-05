@@ -8,6 +8,7 @@ import { updateCommits } from '../entities/commits.js';
 import { startSwing, updateSwing, resetSwing } from '../weapons/keyboard.js';
 import { updateLinter, resetLinter } from '../weapons/linter.js';
 import { updateTests, resetTests } from '../weapons/unittests.js';
+import { updateReview, resetReview } from '../weapons/review.js';
 import { resetUpgrades } from '../upgrades/upgrades.js';
 import { updateLevelup } from '../upgrades/levelup.js';
 import { readAutoplay, autoplaySwing, resetBot } from '../ai/bot.js';
@@ -26,6 +27,7 @@ export function resetGame() {
   resetUpgrades();
   resetLinter();
   resetTests();
+  resetReview();
   resetBot();
 }
 
@@ -67,6 +69,7 @@ export function update() {
   updateSwing();
   updateLinter();
   updateTests();
+  updateReview();
   updateBugs();
   updateCommits();
   updateBanners();
