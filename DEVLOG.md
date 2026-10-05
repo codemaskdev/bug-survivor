@@ -332,3 +332,33 @@ Burnout drops a flickering pixel flame behind CodeMask every 0.05 s while it mov
 What broke: the first fire was too small and faint to read as fire, so the flames went from 4 to 7 pixels tall with a stronger glow. My first card text ("…Literally. Longer, hotter trail." at higher levels) wrapped to three lines and the red "-10 max HP" landed on top of "LV 3 → 4", so the card now always says just "You're on fire. Literally.". Balance (8 seeds × 180 s): with normal picks the bot reached 2:00 in 8/8 runs and survived 3:00 in 6/8, versus 8/8 and 5/8 before. But in the first two minutes of those 8 runs it took Burnout only once, so I also forced it to always take Burnout: still 8/8 at 2:00, but only 3/8 survived 3:00, with 510 bugs smashed instead of 286. Strong, but it costs you in the long run.
 
 Commit: `cd5312a`
+
+## 19:49 — The clock
+
+> Final act: the Friday Deploy boss.
+>
+> Replace the timer with an in-game clock: the run starts at FRI 16:57
+> and ends at 17:00 (3 real minutes).
+>
+> At 16:59 the arena flashes red, a siren plays, a "⚠ DEPLOYING ON FRIDAY"
+> warning appears, and the boss enters: a giant angry pixel-art calendar
+> page that says FRIDAY, neon red, matching the game's style.
+>
+> Attacks:
+> - Hotfix: releases packs of small fast bugs
+> - 500 Internal Server Error: throws red "500" blocks you have to dodge
+> - Rollback: once, when low on HP, it heals back part of its health
+>
+> Three endings:
+> - Boss defeated: "DEPLOYED TO PRODUCTION. Have a nice weekend!"
+> - CodeMask dies: "BUILD FAILED"
+> - Clock hits 17:00 with the boss alive: "WEEKEND RUINED. You're on call."
+>
+> Difficulty: a decent player should usually win on the 2nd or 3rd try.
+> In autoplay, the bot fights the boss too.
+
+First step of the boss prompt: a big clock at the top of the screen now reads FRI 16:57:00 at the start and ticks one in-game second per real second up to 17:00:00, turning red in the last minute. The BUILD FAILED screen says "crashed at FRI 16:58:12" instead of "survived 72.0s".
+
+What broke: nothing broke.
+
+Commit: `deeca6c`
