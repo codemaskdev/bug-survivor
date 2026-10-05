@@ -515,3 +515,36 @@ Item 3 first. The git revert flash only faded during play, so a level-up in the 
 What broke: nothing broke. A headless test that opens the cards right after a revert shows the flash for 120 of 120 frames on the old code and for 35 (its normal 0.6 s) on the new code.
 
 Commit: `686c5d8`
+
+## 20:26 — A softer siren
+
+> Polish pass:
+>
+> 1. Sound. Synthesize everything with Web Audio, no files: keyboard
+>    CLACK, bug squish, commit pickup, level-up chime, card select,
+>    Linter zap, duck squeak, Burnout crackle, git revert whoosh, boss
+>    hits, Rollback, and a short jingle for each of the three endings.
+>    Keep it punchy and not too loud. M toggles mute, show it in the HUD.
+>
+> 2. Mini-CodeMask is too dim and gets lost among colorful bugs. Make
+>    him instantly findable, matching my big avatar's style:
+>    - bright cyan neon outline around the black hoodie
+>    - two cyan hoodie drawstrings
+>    - bigger eyes: small pixel-art trapezoids like my avatar's, glowing
+>    - a soft cyan glow and a ground ring under him
+>    Cyan is the hero's color: make sure no bug uses it as a main color.
+>
+> 3. Bug: if a git revert flash coincides with a level-up, the red flash
+>    freezes under the cards. Fix it.
+>
+> 4. The boss siren is too harsh and startling, especially in
+>    headphones. Make it softer: lower volume, smoother tone, gentle
+>    fade in and out. Tense, not scary.
+>
+> Re-record the replay-check baseline after.
+
+Item 4: the siren is now two slightly detuned sine waves gliding slowly between 380 and 520 Hz (was sawtooth waves between 520 and 880 Hz), through a softer low-pass filter, with a 0.8 s fade-in and a 1 s fade-out over 3 s. Measured by rendering both versions offline in the browser: peak 0.23 → 0.09, RMS 0.078 → 0.036 (about 7 dB quieter), and the first 100 ms went from 0.092 to 0.010, which was the startling part.
+
+What broke: nothing broke. Sound isn't drawn, so the replay check passed without re-recording.
+
+Commit: `fce8fe8`
