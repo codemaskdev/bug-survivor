@@ -452,3 +452,33 @@ The BUILD FAILED screen became one ending screen with three versions. Killing th
 What broke: nothing broke. I tested the win path by forcing the boss to 24% HP: Rollback kicked in and healed it to 257/400, and then at 1 HP it still took the bot about 40 s to land a hit, which confirms the bot is avoiding the boss.
 
 Commit: `50d046e`
+
+## 20:07 — Bot vs boss, and the difficulty
+
+> Final act: the Friday Deploy boss.
+>
+> Replace the timer with an in-game clock: the run starts at FRI 16:57
+> and ends at 17:00 (3 real minutes).
+>
+> At 16:59 the arena flashes red, a siren plays, a "⚠ DEPLOYING ON FRIDAY"
+> warning appears, and the boss enters: a giant angry pixel-art calendar
+> page that says FRIDAY, neon red, matching the game's style.
+>
+> Attacks:
+> - Hotfix: releases packs of small fast bugs
+> - 500 Internal Server Error: throws red "500" blocks you have to dodge
+> - Rollback: once, when low on HP, it heals back part of its health
+>
+> Three endings:
+> - Boss defeated: "DEPLOYED TO PRODUCTION. Have a nice weekend!"
+> - CodeMask dies: "BUILD FAILED"
+> - Clock hits 17:00 with the boss alive: "WEEKEND RUINED. You're on call."
+>
+> Difficulty: a decent player should usually win on the 2nd or 3rd try.
+> In autoplay, the bot fights the boss too.
+
+The bot now fights the boss: it closes to keyboard range when its swing is ready, steps back while it recharges or while the boss winds up a throw, circles the boss, and sidesteps any 500 block whose path will pass within 45 px in the next 0.8 s. Final tuning: boss HP 210 (was 400), contact damage 14 (was 20), 500 blocks hit for 12 (was 15), fly at 200 (was 230), fan out wider (0.45 rad between blocks instead of 0.28) and only hit when they visibly touch CodeMask. The boss can no longer be stun-locked. Over 16 seeds the bot now wins 8, dies 3 times and ruins the weekend 5 times.
+
+What broke: a lot, one step at a time (16 seeds each). First version: 0 wins, the bot was in swing range of the boss only 1–13% of the fight. Pulling it harder toward the boss: still 0 wins. It turned out the Hotfix packs made it count as "surrounded" almost all fight, and every hit stunned the boss for 0.15 s, so shields, Linter and duck kept it frozen in place. Fixing both: 0 wins and 11 deaths, because 48–84 of the damage it took per fight came from 500 blocks. At the old spread the three blocks left about 5 px gaps, a wall nobody could slip through, and the hitbox was 8–10 px bigger than the drawing. Making them dodgeable: 6 wins. Boss HP 210 gave 8 (200 gave 9). I aimed for about 50% for the bot, because a human probably dodges worse than it does but learns the pattern by try 2–3. That's a judgment call, not a measurement of humans.
+
+Commit: `9483e3c`
