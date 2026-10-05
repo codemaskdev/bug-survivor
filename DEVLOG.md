@@ -362,3 +362,33 @@ First step of the boss prompt: a big clock at the top of the screen now reads FR
 What broke: nothing broke.
 
 Commit: `deeca6c`
+
+## 19:52 — The Friday Deploy walks in
+
+> Final act: the Friday Deploy boss.
+>
+> Replace the timer with an in-game clock: the run starts at FRI 16:57
+> and ends at 17:00 (3 real minutes).
+>
+> At 16:59 the arena flashes red, a siren plays, a "⚠ DEPLOYING ON FRIDAY"
+> warning appears, and the boss enters: a giant angry pixel-art calendar
+> page that says FRIDAY, neon red, matching the game's style.
+>
+> Attacks:
+> - Hotfix: releases packs of small fast bugs
+> - 500 Internal Server Error: throws red "500" blocks you have to dodge
+> - Rollback: once, when low on HP, it heals back part of its health
+>
+> Three endings:
+> - Boss defeated: "DEPLOYED TO PRODUCTION. Have a nice weekend!"
+> - CodeMask dies: "BUILD FAILED"
+> - Clock hits 17:00 with the boss alive: "WEEKEND RUINED. You're on call."
+>
+> Difficulty: a decent player should usually win on the 2nd or 3rd try.
+> In autoplay, the bot fights the boss too.
+
+At 16:59 the regular waves stop, the screen pulses red, a siren plays (the game's first sound: two detuned sawtooth oscillators via Web Audio, no files), "⚠ DEPLOYING ON FRIDAY" with "git push --force origin main" fills the middle of the screen, and the boss walks in from the top: a 130×150 px neon-red calendar page with binder rings, a FRIDAY header and an angry face, with its own health bar under the clock. It's registered as a bug type outside the waves, so every weapon already hits it; git revert can't wipe it, and if you outrun it, it speeds up instead of teleporting. The replay check now runs the full 180 s so the boss is covered (about 44 s instead of 10).
+
+What broke: the first boss was almost always white, because the hit flash painted the whole page and something (shields, Linter, keyboard) hits it nearly every frame; now only the frame flashes. And my first sound module added its own keydown listener to unlock audio, which would have replaced the game's input handler inside the replay check's stub (it keeps one handler per event); caught it before running and moved the unlock into the existing input handler.
+
+Commit: `eb71929`
