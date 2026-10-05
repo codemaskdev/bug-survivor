@@ -243,3 +243,26 @@ git revert is the first rare card: it has a quarter of the normal weight in the 
 What surprised me: with seven upgrades the autoplay bot is weaker. In 180 s headless runs on five seeds it died first between 67 and 81 s in all five, where before this prompt it lasted the full 90 s. It picks cards at random, so its levels end up thinly spread. Also, the revert's red flash freezes under the upgrade cards when a level-up lands in the same moment, because effects pause with the game.
 
 Commit: `2f20504`
+
+## 19:14 — The world is endless
+
+> I played it myself and it feels cramped. Let's make the world infinite.
+>
+> - The camera follows CodeMask, who stays near the center of the screen.
+> - The world is endless: the neon grid scrolls with movement, no walls.
+> - Bugs spawn just outside the visible screen, all around, not from
+>   fixed edges.
+> - Bugs that fall far behind off-screen get despawned (or respawned
+>   closer), so the number of bugs stays under control.
+> - HUD, banners and cards stay fixed on screen.
+> - Update the autoplay bot for the open world, and make it pick cards
+>   with priorities instead of randomly, so it survives longer.
+>
+> This is an intentional behavior change: after it works, re-record the
+> replay-check baseline with --update.
+
+CodeMask now lives in an endless world: a camera eases after it every step so it stays near the screen center, the neon grid is fixed to the world and scrolls by, and the walls are gone (the arena border too). Bugs appear at random points just outside the screen on all four sides; any bug that ends up more than 900 px from CodeMask is moved back to just off-screen, a wave stops spawning once 160 bugs are alive, and commits left 1400 px behind disappear. HUD, banners, cards and the git revert flash stay screen-fixed; the old ARENA_W/H constants became VIEW_W/H, since they now only mean the screen size.
+
+What surprised me: the open world alone made the old bot survive much longer (four of five seeds lived the full 180 s), but it survives by running. On seed 2 it reached wave 15 with only 70 bugs smashed and level 3, which is dull footage. That's the next commit. In this one the bot only lost its wall logic and now wanders around CodeMask instead of around a fixed arena.
+
+Commit: `8f61cb8`
