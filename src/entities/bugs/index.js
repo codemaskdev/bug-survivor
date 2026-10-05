@@ -12,6 +12,7 @@ import { leak } from './leak.js';
 import { loop } from './loop.js';
 import { merge, mergeOurs, mergeTheirs } from './merge.js';
 import { friday } from './friday.js';
+import { hotfix } from './hotfix.js';
 
 // ---------- Bug species registry ----------
 // To add a species: create a file next to this one exporting an object with
@@ -25,7 +26,7 @@ import { friday } from './friday.js';
 const WAVE_SPECIES = [nullptr, leak, loop, merge];
 
 const TYPES = Object.fromEntries(
-  [nullptr, leak, loop, merge, mergeOurs, mergeTheirs, friday].map((s) => [s.type, s])
+  [nullptr, leak, loop, merge, mergeOurs, mergeTheirs, friday, hotfix].map((s) => [s.type, s])
 );
 
 const SPAWN_MARGIN = 30;     // px outside the screen where bugs appear
@@ -114,6 +115,7 @@ function spawnChild(type, x, y) {
 
 // Returns true if the bug is gone (dead or split). The caller removes it.
 export function damageBug(b, amount, fromKeyboard) {
+  if (b.invulnerable > 0) return false;   // the boss during its Rollback
   const sp = TYPES[b.type];
   if (sp.onHit && sp.onHit(b, spawnChild)) return true;
 

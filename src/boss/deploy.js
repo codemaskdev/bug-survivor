@@ -5,6 +5,7 @@ import { camera } from '../core/camera.js';
 import { playSiren } from '../fx/sound.js';
 import { shake } from '../fx/shake.js';
 import { makeBug, clearSpawnQueue } from '../entities/bugs/index.js';
+import { updateAttacks, drawAttacks, resetAttacks } from './attacks.js';
 
 // The Friday Deploy: at 16:59 (two minutes in) the waves stop, the screen
 // flashes red, a siren wails, a warning goes up and the boss walks in.
@@ -22,6 +23,7 @@ export function resetDeploy() {
   deploy.phase = 'waiting';
   deploy.t = 0;
   deploy.entered = false;
+  resetAttacks();
 }
 
 export function findBoss() {
@@ -50,6 +52,12 @@ export function updateDeploy() {
       deploy.t = 0;
     }
   }
+  if (deploy.entered) updateAttacks(findBoss());
+}
+
+// Boss attacks in world coordinates (500 blocks, rollback ring)
+export function drawDeployWorld() {
+  if (deploy.entered) drawAttacks(findBoss());
 }
 
 // Red alarm flash + "⚠ DEPLOYING ON FRIDAY" (screen coordinates)

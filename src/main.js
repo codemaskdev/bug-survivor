@@ -11,7 +11,7 @@
 //   fx/        particles, pop-ups, screen shake, glitch noise
 //   ui/        hud, upgrade cards, banners, game over
 //   world/     the endless neon grid
-//   boss/      the Friday Deploy: boss entrance at 16:59
+//   boss/      the Friday Deploy: entrance at 16:59 and the boss's attacks
 
 import './core/input.js';
 import './ui/cards.js';
