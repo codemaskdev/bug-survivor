@@ -13,7 +13,7 @@ import { chooseCard } from '../ai/bot.js';
 const CARDS_SHOWN = 3;
 
 function drawOffer() {
-  const pool = UPGRADES.map((u, i) => i);
+  const pool = UPGRADES.map((u, i) => i).filter((i) => UPGRADES[i].level < (UPGRADES[i].maxLevel ?? Infinity));
   const offer = [];
   while (offer.length < CARDS_SHOWN && pool.length) {
     const total = pool.reduce((s, i) => s + (UPGRADES[i].weight ?? 1), 0);

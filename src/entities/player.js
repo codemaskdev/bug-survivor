@@ -54,6 +54,11 @@ export function resetPlayer() {
   player.facing = 0;
 }
 
+// Burnout upgrade: every level burns away 10 max HP
+export function playerMaxHp() {
+  return PLAYER_MAX_HP - UP.burnout.level * 10;
+}
+
 // Coffee upgrade: +15% speed per level
 function playerSpeed() {
   return PLAYER_SPEED * (1 + UP.coffee.level * 0.15);

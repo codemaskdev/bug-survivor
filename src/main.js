@@ -5,7 +5,7 @@
 //
 //   core/      loop, fixed-step update, camera, input, rng, shared state
 //   entities/  player, commits, bugs/ (one file per species)
-//   weapons/   keyboard swing and the upgrade weapons (linter, tests, review, duck, revert)
+//   weapons/   keyboard swing and the upgrade weapons (linter, tests, review, duck, revert, burnout)
 //   upgrades/  upgrade list and the level-up flow
 //   ai/        the autoplay bot
 //   fx/        particles, pop-ups, screen shake, glitch noise

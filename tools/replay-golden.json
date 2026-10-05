@@ -2,41 +2,41 @@
   "seconds": 90,
   "runs": {
     "seed1": {
-      "hash": "6b0e3c58d8bc4015",
-      "canvasCalls": 9125869,
+      "hash": "598b69bb29b859f0",
+      "canvasCalls": 12351244,
       "hud": [
         "AUTOPLAY  seed 1   WAVE 14",
-        "HP 92",
-        "SMASHED 88",
-        "LINTER 1  ·  TESTS 1  ·  REVIEW 1  ·  REVERT 2",
-        "LVL 6   13/25 commits"
+        "HP 100",
+        "SMASHED 95",
+        "LINTER 2  ·  REVIEW 2  ·  DUCK 1",
+        "LVL 6   15/25 commits"
       ]
     },
     "seed2": {
-      "hash": "c95f7441eb12642b",
-      "canvasCalls": 6651329,
+      "hash": "34045bcda0d37842",
+      "canvasCalls": 8118474,
       "hud": [
         "AUTOPLAY  seed 2   WAVE 14",
-        "HP 100",
-        "SMASHED 94",
-        "LINTER 1  ·  MECH 1  ·  TESTS 1  ·  REVIEW 2  ·  REVERT 1",
-        "LVL 7   3/29 commits"
+        "HP 70",
+        "SMASHED 99",
+        "LINTER 2  ·  MECH 1  ·  TESTS 1  ·  REVIEW 1  ·  DUCK 1",
+        "LVL 7   8/29 commits"
       ]
     },
     "seed7": {
-      "hash": "0b3b173b83fe4381",
-      "canvasCalls": 7479819,
+      "hash": "bba5f7b63199a2d2",
+      "canvasCalls": 7831969,
       "hud": [
         "AUTOPLAY  seed 7   WAVE 14",
-        "HP 88",
-        "SMASHED 77",
-        "LINTER 1  ·  TESTS 1  ·  REVIEW 1  ·  REVERT 2",
-        "LVL 6   3/25 commits"
+        "HP 100",
+        "SMASHED 103",
+        "LINTER 1  ·  MECH 1  ·  TESTS 1  ·  REVIEW 2  ·  DUCK 1",
+        "LVL 7   7/29 commits"
       ]
     },
     "manual": {
-      "hash": "2b090bbd566a7390",
-      "canvasCalls": 9080571,
+      "hash": "188f50971a4f98ec",
+      "canvasCalls": 9079815,
       "hud": [
         "WAVE 7",
         "HP 84",

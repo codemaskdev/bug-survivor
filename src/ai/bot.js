@@ -134,6 +134,7 @@ const CARD_PRIORITY = {
   tests: 60,
   mech: 58,
   duck: 45,
+  burnout: 40,   // strong, but costs max HP
   coffee: 35,
 };
 

@@ -13,6 +13,7 @@ import { drawTests } from '../weapons/unittests.js';
 import { drawReview } from '../weapons/review.js';
 import { drawDuck } from '../weapons/duck.js';
 import { drawRevert } from '../weapons/revert.js';
+import { drawBurnout } from '../weapons/burnout.js';
 import { drawFx } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { drawHud } from '../ui/hud.js';
@@ -50,6 +51,7 @@ function frame(now) {
   ctx.translate(ox, oy);
   drawReview();
   drawCommits(simTime);
+  drawBurnout(simTime);
   drawPlayer(simTime);
   drawBugs(simTime);
   drawSwing();

@@ -150,6 +150,27 @@ const ICONS = {
       '................',
     ],
   },
+  burnout: {
+    colors: { R: '#ff2e00', O: '#ff8c1a', Y: '#ffd23f', W: '#fff3c4' },
+    rows: [
+      '.......R........',
+      '......RR........',
+      '......RRR....R..',
+      '.....RRRR...RR..',
+      '..R..RROR...RR..',
+      '..RR.RROOR.RRR..',
+      '..RRRROOORRROR..',
+      '.RRRROOYOORROOR.',
+      '.RRROOYYYOOOOOR.',
+      '.RROOYYYYYOOOOR.',
+      '.RROOYYWYYYOOOR.',
+      '.RROOYYWWYYYOOR.',
+      '..RROOYWWWYYOR..',
+      '..RRROOYYYOORR..',
+      '...RRROOOORRR...',
+      '.....RRRRRR.....',
+    ],
+  },
 };
 
 const ICON_PIXEL = 3;

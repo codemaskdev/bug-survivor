@@ -1,6 +1,7 @@
 // The upgrade cards. Each one can be picked again to level it up.
 // Icons are pixel art in ui/icons.js; the effects live where they're used
-// (weapons/*.js, entities/player.js). `weight` makes a card rarer (default 1).
+// (weapons/*.js, entities/player.js). `weight` makes a card rarer (default 1),
+// `maxLevel` takes it out of the pool once reached, `drawback` is shown in red.
 export const UPGRADES = [
   {
     key: 'linter',
@@ -51,6 +52,15 @@ export const UPGRADES = [
     describe: (lv) => lv === 0
       ? 'A duck buddy follows you and pecks the nearest bug.'
       : 'The duck pecks faster and harder. Squeak!',
+  },
+  {
+    key: 'burnout',
+    name: 'Burnout',
+    short: 'BURNOUT',
+    maxLevel: 5,
+    drawback: '-10 max HP',
+    level: 0,
+    describe: () => "You're on fire. Literally.",
   },
   {
     key: 'revert',

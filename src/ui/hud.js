@@ -2,7 +2,7 @@ import { VIEW_W, VIEW_H, PLAYER_MAX_HP } from '../config.js';
 import { AUTOPLAY, SEED } from '../core/params.js';
 import { ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
-import { player } from '../entities/player.js';
+import { player, playerMaxHp } from '../entities/player.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { revertCountdown } from '../weapons/revert.js';
@@ -18,11 +18,21 @@ export function drawHud() {
 
   // Health bar
   const x = 16, y = 36, w = 200, h = 10;
+  // The bar is always 100 HP wide; max HP lost to Burnout shows as a
+  // charred segment at the right end
   const frac = player.hp / PLAYER_MAX_HP;
+  const maxFrac = playerMaxHp() / PLAYER_MAX_HP;
   ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
   ctx.fillRect(x, y, w, h);
+  if (maxFrac < 1) {
+    const bx = x + Math.round(w * maxFrac);
+    ctx.fillStyle = '#3a0d10';
+    ctx.fillRect(bx, y, x + w - bx, h);
+    ctx.fillStyle = 'rgba(255, 90, 26, 0.5)';
+    for (let sx = bx + 2; sx < x + w; sx += 5) ctx.fillRect(sx, y + 2, 2, h - 4);
+  }
   ctx.save();
-  ctx.fillStyle = frac > 0.3 ? '#00f0ff' : '#ff2e63';
+  ctx.fillStyle = player.hp / playerMaxHp() > 0.3 ? '#00f0ff' : '#ff2e63';
   ctx.shadowColor = ctx.fillStyle;
   ctx.shadowBlur = 8;
   ctx.fillRect(x, y, Math.round(w * frac), h);

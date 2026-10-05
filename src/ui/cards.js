@@ -114,8 +114,14 @@ export function drawUpgradeCards() {
 
     ctx.font = '13px monospace';
     ctx.fillStyle = 'rgba(230, 235, 242, 0.85)';
-    for (const [k, line] of wrapText(u.describe(u.level), r.w - 30).entries()) {
+    const lines = wrapText(u.describe(u.level), r.w - 30);
+    for (const [k, line] of lines.entries()) {
       ctx.fillText(line, r.x + r.w / 2, y + 164 + k * 17);
+    }
+    if (u.drawback) {
+      ctx.font = '11px monospace';
+      ctx.fillStyle = '#ff2e63';
+      ctx.fillText(u.drawback, r.x + r.w / 2, y + 164 + lines.length * 17 + 2);
     }
 
     ctx.font = 'bold 14px monospace';

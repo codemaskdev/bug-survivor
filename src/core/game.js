@@ -12,6 +12,7 @@ import { updateTests, resetTests } from '../weapons/unittests.js';
 import { updateReview, resetReview } from '../weapons/review.js';
 import { updateDuck, resetDuck } from '../weapons/duck.js';
 import { updateRevert, resetRevert } from '../weapons/revert.js';
+import { updateBurnout, resetBurnout } from '../weapons/burnout.js';
 import { resetUpgrades } from '../upgrades/upgrades.js';
 import { updateLevelup } from '../upgrades/levelup.js';
 import { readAutoplay, autoplaySwing, resetBot } from '../ai/bot.js';
@@ -34,6 +35,7 @@ export function resetGame() {
   resetReview();
   resetDuck();
   resetRevert();
+  resetBurnout();
   resetBot();
 }
 
@@ -80,6 +82,7 @@ export function update() {
   updateReview();
   updateDuck();
   updateRevert();
+  updateBurnout();
   updateBugs();
   updateCommits();
   updateBanners();
