@@ -2,8 +2,8 @@
   "seconds": 90,
   "runs": {
     "seed1": {
-      "hash": "598b69bb29b859f0",
-      "canvasCalls": 12351244,
+      "hash": "39ac63b169038913",
+      "canvasCalls": 12367444,
       "hud": [
         "AUTOPLAY  seed 1   WAVE 14",
         "HP 100",
@@ -13,8 +13,8 @@
       ]
     },
     "seed2": {
-      "hash": "34045bcda0d37842",
-      "canvasCalls": 8118474,
+      "hash": "f81b220891b31c42",
+      "canvasCalls": 8134674,
       "hud": [
         "AUTOPLAY  seed 2   WAVE 14",
         "HP 70",
@@ -24,8 +24,8 @@
       ]
     },
     "seed7": {
-      "hash": "bba5f7b63199a2d2",
-      "canvasCalls": 7831969,
+      "hash": "9c387fb38403deb8",
+      "canvasCalls": 7848169,
       "hud": [
         "AUTOPLAY  seed 7   WAVE 14",
         "HP 100",
@@ -35,8 +35,8 @@
       ]
     },
     "manual": {
-      "hash": "188f50971a4f98ec",
-      "canvasCalls": 9079815,
+      "hash": "505c7183c8d67c27",
+      "canvasCalls": 9096015,
       "hud": [
         "WAVE 7",
         "HP 84",

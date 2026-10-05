@@ -6,6 +6,7 @@ import { player, playerMaxHp } from '../entities/player.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { revertCountdown } from '../weapons/revert.js';
+import { clockText, RUN_SECONDS } from '../core/clock.js';
 
 export function drawHud() {
   ctx.fillStyle = 'rgba(0, 240, 255, 0.55)';
@@ -14,6 +15,18 @@ export function drawHud() {
   ctx.fillText('BUG SURVIVOR', 16, 14);
   ctx.textAlign = 'right';
   ctx.fillText(AUTOPLAY ? `AUTOPLAY  seed ${SEED}   WAVE ${game.wave}` : `WAVE ${game.wave}`, VIEW_W - 16, 14);
+
+  // The in-game clock, top center. Turns red in the last minute.
+  const lastMinute = game.roundTime >= RUN_SECONDS - 60;
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 22px monospace';
+  ctx.save();
+  ctx.fillStyle = lastMinute ? '#ff2e63' : '#e6ebf2';
+  ctx.shadowColor = ctx.fillStyle;
+  ctx.shadowBlur = 10;
+  ctx.fillText(clockText(game.roundTime), VIEW_W / 2, 10);
+  ctx.restore();
+  ctx.font = '11px monospace';
   ctx.textAlign = 'left';
 
   // Health bar
