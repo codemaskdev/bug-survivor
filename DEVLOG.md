@@ -167,7 +167,7 @@ Commit: `5af2401`
 
 Unit Tests puts little green ✓ shields in orbit around CodeMask (two at level 1, one more per level, up to 8); a shield deals 1 damage to a bug it touches and bounces it away, and can't hit the same bug again for 0.4 s. With four upgrades the cards can no longer just show everything, so a level-up now draws 3 different cards from a weighted pool using the seeded RNG, and the HUD lists upgrades by short names (LINTER 1 · MECH 3 · TESTS 2) so the line still fits.
 
-What surprised me: on seed 1 the bot now dies at 83 s (wave 12), where before it survived the whole 90 s. Unit Tests isn't the cause: the bot happened never to be offered or pick Linter this time, because it now chooses from 3 random cards instead of always seeing all of them. Seeds 2 and 7 still survive.
+What surprised me: on seed 1 the bot now dies at 83 s (wave 12), where before it survived the whole 90 s. Unit Tests isn't the cause: the bot was offered Linter several times but never picked it, because it now chooses at random from 3 drawn cards instead of from all of them. Seeds 2 and 7 still survive.
 
 Commit: `69d3b9d`
 
