@@ -5,6 +5,7 @@ import { game } from '../core/state.js';
 import { UP } from '../upgrades/upgrades.js';
 import { smashFx, addPopup } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
+import { sfxWhoosh } from '../fx/sound.js';
 
 // git revert upgrade (rare): every 30 seconds, every bug on screen is undone.
 // Reverted bugs never happened, so they drop no commits.
@@ -41,6 +42,7 @@ function wipe() {
   }
   game.bugs = game.bugs.filter((b) => !onScreen(b));
   revert.flash = FLASH_TIME;
+  sfxWhoosh();
   shake.amount = Math.min(10, shake.amount + 8);
   addPopup({ x: camera.x, y: camera.y, text: '$ git revert HEAD', size: 26, life: 0.7, tilt: 0, color: '#f05033' }, 9999);
 }

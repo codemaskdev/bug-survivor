@@ -4,6 +4,7 @@ import { game } from '../core/state.js';
 import { UP } from '../upgrades/upgrades.js';
 import { player } from '../entities/player.js';
 import { damageBug, flushNewBugs } from '../entities/bugs/index.js';
+import { sfxZap } from '../fx/sound.js';
 
 // Linter upgrade: auto-fires at the nearest bug. Each level fires faster.
 const linter = {
@@ -31,6 +32,7 @@ export function updateLinter() {
       }
       if (best) {
         const a = Math.atan2(best.y - player.y, best.x - player.x);
+        sfxZap();
         linter.shots.push({ x: player.x, y: player.y, vx: Math.cos(a) * LINT_SPEED, vy: Math.sin(a) * LINT_SPEED, dist: 0 });
         linter.timer = linterInterval();
       }

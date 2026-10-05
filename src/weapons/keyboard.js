@@ -8,6 +8,7 @@ import { addPopup } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { player } from '../entities/player.js';
 import { damageBug, flushNewBugs } from '../entities/bugs/index.js';
+import { sfxClack } from '../fx/sound.js';
 
 // CodeMask's keyboard: Space or J swings it in an arc in front of CodeMask.
 export const swing = {
@@ -64,6 +65,7 @@ export function updateSwing() {
   });
   flushNewBugs();
   if (hits.length === 0) return;
+  sfxClack(UP.mech.level);
 
   // A mechanical keyboard is louder: bigger CLACK, more !, more shake
   const loud = UP.mech.level;

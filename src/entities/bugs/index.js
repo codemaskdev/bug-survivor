@@ -13,6 +13,7 @@ import { loop } from './loop.js';
 import { merge, mergeOurs, mergeTheirs } from './merge.js';
 import { friday } from './friday.js';
 import { hotfix } from './hotfix.js';
+import { sfxSquish, sfxBossHit } from '../../fx/sound.js';
 
 // ---------- Bug species registry ----------
 // To add a species: create a file next to this one exporting an object with
@@ -122,10 +123,12 @@ export function damageBug(b, amount, fromKeyboard) {
   b.hp -= amount;
   if (b.hp > 0) {
     b.flash = 0.1;
+    if (b.boss) sfxBossHit();
     if (!b.boss) b.stun = Math.max(b.stun, 0.15);   // the boss can't be stun-locked
     return false;
   }
   game.smashed++;
+  sfxSquish();
   dropCommit(b.x, b.y);
   smashFx(b.x, b.y, fromKeyboard, sp.color);
   return true;

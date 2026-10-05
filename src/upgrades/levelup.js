@@ -6,6 +6,7 @@ import { input } from '../core/input.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from './upgrades.js';
 import { chooseCard } from '../ai/bot.js';
+import { sfxLevelUp, sfxSelect } from '../fx/sound.js';
 
 // A full XP bar pauses the game and shows three upgrade cards,
 // drawn from the pool by weight (rare cards have a small weight).
@@ -30,6 +31,7 @@ function drawOffer() {
 
 export function openUpgradeCards() {
   game.state = 'levelup';
+  sfxLevelUp();
   game.levelupTime = 0;
   game.cardChoice = 1;
   game.offer = drawOffer();
@@ -39,6 +41,7 @@ export function openUpgradeCards() {
 export function pickCard(i) {
   if (game.state !== 'levelup' || game.levelupTime < 0.3) return;
   UPGRADES[game.offer[i]].level++;
+  sfxSelect();
   game.state = 'playing';
   input.swingPressed = false;
   // Leftover XP might already fill the next bar

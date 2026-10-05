@@ -3,6 +3,7 @@ import { ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
 import { player } from './player.js';
 import { openUpgradeCards } from '../upgrades/levelup.js';
+import { sfxPickup } from '../fx/sound.js';
 
 // Commits are XP: dead bugs drop them, CodeMask walks over them to collect.
 const COMMIT_FORGET = 1400;  // px: commits this far away are gone for good
@@ -24,6 +25,7 @@ export function updateCommits() {
     if (d < COMMIT_PICKUP) {
       c.taken = true;
       game.xp++;
+      sfxPickup();
     } else if (d < COMMIT_MAGNET) {
       const pull = 260 * (1 - d / COMMIT_MAGNET) + 60;
       c.x += (dx / d) * pull * STEP;

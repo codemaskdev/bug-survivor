@@ -6,6 +6,7 @@ import { UP } from '../upgrades/upgrades.js';
 import { addPopup } from '../fx/particles.js';
 import { player } from '../entities/player.js';
 import { damageBug, flushNewBugs } from '../entities/bugs/index.js';
+import { sfxSqueak } from '../fx/sound.js';
 
 // Rubber Duck upgrade: a little duck companion that waddles after CodeMask,
 // flies at the nearest bug, pecks it and squeaks. Levels peck faster and harder.
@@ -91,6 +92,7 @@ export function updateDuck() {
       if (d < b.r + 5) {
         if (damageBug(b, peckDamage(lv), false)) b.dead = true;
         duck.peck = 0.15;
+        sfxSqueak();
         duck.cooldown = peckInterval(lv);
         duck.mode = 'follow';
         duck.target = null;

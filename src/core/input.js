@@ -1,7 +1,7 @@
 import { AUTOPLAY } from './params.js';
 import { game } from './state.js';
 import { handleCardKey } from '../upgrades/levelup.js';
-import { unlockAudio } from '../fx/sound.js';
+import { unlockAudio, toggleMute } from '../fx/sound.js';
 
 export const input = {
   keys: new Set(),
@@ -14,6 +14,7 @@ window.addEventListener('keydown', (e) => {
   input.keys.add(e.code);
   if (e.code === 'KeyR' || e.code === 'Enter') input.restartPressed = true;
   if (e.code === 'Space' || e.code === 'KeyJ') input.swingPressed = true;
+  if (e.code === 'KeyM' && !e.repeat) toggleMute();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
   if (game.state === 'levelup' && !AUTOPLAY) handleCardKey(e.code);
 });

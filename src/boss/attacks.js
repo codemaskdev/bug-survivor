@@ -5,6 +5,7 @@ import { addPopup } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { player } from '../entities/player.js';
 import { makeBug } from '../entities/bugs/index.js';
+import { sfxRollback } from '../fx/sound.js';
 
 // The Friday Deploy's moves, on a fixed rotation:
 //   Hotfix   - a pack of small fast bugs bursts out of the boss
@@ -96,6 +97,7 @@ export function updateAttacks(boss) {
   if (!attacks.rolledBack && boss.hp <= boss.maxHp * ROLLBACK_AT) {
     attacks.rolledBack = true;
     attacks.rollback = ROLLBACK_TIME;
+    sfxRollback();
     addPopup({ x: boss.x, y: boss.y - boss.r - 24, text: 'ROLLBACK', size: 26, life: 0.7, tilt: 0, color: '#7aa2ff' }, 80);
   }
   if (attacks.rollback > 0) {

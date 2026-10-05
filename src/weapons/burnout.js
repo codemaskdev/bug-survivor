@@ -5,6 +5,7 @@ import { UP } from '../upgrades/upgrades.js';
 import { glitchNoise } from '../fx/glitch.js';
 import { player, playerMaxHp } from '../entities/player.js';
 import { damageBug, flushNewBugs } from '../entities/bugs/index.js';
+import { sfxCrackle } from '../fx/sound.js';
 
 // Burnout upgrade: while CodeMask moves it leaves a trail of fire. Bugs that
 // touch a flame catch fire and burn for a moment. Higher levels make the
@@ -70,6 +71,7 @@ export function updateBurnout() {
     if (b.burnAcc >= 1) {
       const dmg = Math.floor(b.burnAcc);
       b.burnAcc -= dmg;
+      sfxCrackle();
       if (damageBug(b, dmg, false)) b.dead = true;
     }
   }

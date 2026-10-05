@@ -7,6 +7,7 @@ import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { revertCountdown } from '../weapons/revert.js';
 import { clockText, RUN_SECONDS } from '../core/clock.js';
+import { isMuted } from '../fx/sound.js';
 
 export function drawHud() {
   ctx.fillStyle = 'rgba(0, 240, 255, 0.55)';
@@ -15,6 +16,9 @@ export function drawHud() {
   ctx.fillText('BUG SURVIVOR', 16, 14);
   ctx.textAlign = 'right';
   ctx.fillText(AUTOPLAY ? `AUTOPLAY  seed ${SEED}   WAVE ${game.wave}` : `WAVE ${game.wave}`, VIEW_W - 16, 14);
+  ctx.font = '11px monospace';
+  ctx.fillStyle = isMuted() ? 'rgba(255, 46, 99, 0.7)' : 'rgba(0, 240, 255, 0.45)';
+  ctx.fillText(isMuted() ? '♪ MUTED  [M]' : '♪ SOUND ON  [M]', VIEW_W - 16, 34);
 
   // The in-game clock, top center. Turns red in the last minute.
   const lastMinute = game.roundTime >= RUN_SECONDS - 60;

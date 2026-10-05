@@ -22,6 +22,7 @@ import { updateBanners, resetBanners } from '../ui/banner.js';
 import { updateDeploy, resetDeploy } from '../boss/deploy.js';
 import { RUN_SECONDS } from './clock.js';
 import { isEnded } from '../ui/screens.js';
+import { sfxEnding } from '../fx/sound.js';
 
 export function resetGame() {
   resetPlayer();
@@ -103,5 +104,6 @@ export function update() {
   if (isEnded(game.state)) {
     game.overTime = 0;
     player.hurtTimer = 0;
+    sfxEnding(game.state);
   }
 }
