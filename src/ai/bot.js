@@ -1,14 +1,14 @@
-import { ARENA_W, ARENA_H, STEP } from '../config.js';
+import { STEP } from '../config.js';
 import { rng } from '../core/rng.js';
 import { game } from '../core/state.js';
 import { player } from '../entities/player.js';
 import { swing, swingReach, startSwing } from '../weapons/keyboard.js';
 
 // ---------- Autoplay brain ----------
-// Wanders between random points in the arena, pausing now and then,
+// Wanders between random points around CodeMask, pausing now and then,
 // steers away from any bug that gets too close, picks up commits,
 // and swings at bugs in reach.
-const bot = { tx: ARENA_W / 2, ty: ARENA_H / 2, wait: 0 };
+const bot = { tx: 0, ty: 0, wait: 0 };
 const BOT_FEAR_RADIUS = 110;
 
 export function resetBot() {
@@ -29,12 +29,6 @@ export function readAutoplay() {
       fy += (dy / d) * w;
     }
   }
-  // Walls push back too, so fleeing doesn't end in a corner
-  const m = 80;
-  if (player.x < m) fx += (m - player.x) / m;
-  if (player.x > ARENA_W - m) fx -= (player.x - (ARENA_W - m)) / m;
-  if (player.y < m) fy += (m - player.y) / m;
-  if (player.y > ARENA_H - m) fy -= (player.y - (ARENA_H - m)) / m;
   const scared = Math.hypot(fx, fy) > 0.05;
 
   // Go grab the nearest commit, if there's one worth walking to
@@ -57,9 +51,8 @@ export function readAutoplay() {
   let dy = bot.ty - player.y;
   let dist = Math.hypot(dx, dy);
   if (dist < 6) {
-    const margin = 60;
-    bot.tx = margin + rng() * (ARENA_W - margin * 2);
-    bot.ty = margin + rng() * (ARENA_H - margin * 2);
+    bot.tx = player.x + (rng() - 0.5) * 600;
+    bot.ty = player.y + (rng() - 0.5) * 400;
     bot.wait = rng() < 0.3 ? 0.3 + rng() * 0.6 : 0;
     return { x: 0, y: 0 };
   }

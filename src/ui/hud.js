@@ -1,4 +1,4 @@
-import { ARENA_W, ARENA_H, PLAYER_MAX_HP } from '../config.js';
+import { VIEW_W, VIEW_H, PLAYER_MAX_HP } from '../config.js';
 import { AUTOPLAY, SEED } from '../core/params.js';
 import { ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
@@ -13,7 +13,7 @@ export function drawHud() {
   ctx.textBaseline = 'top';
   ctx.fillText('BUG SURVIVOR', 16, 14);
   ctx.textAlign = 'right';
-  ctx.fillText(AUTOPLAY ? `AUTOPLAY  seed ${SEED}   WAVE ${game.wave}` : `WAVE ${game.wave}`, ARENA_W - 16, 14);
+  ctx.fillText(AUTOPLAY ? `AUTOPLAY  seed ${SEED}   WAVE ${game.wave}` : `WAVE ${game.wave}`, VIEW_W - 16, 14);
   ctx.textAlign = 'left';
 
   // Health bar
@@ -39,26 +39,26 @@ export function drawHud() {
   // XP bar along the bottom edge
   const xpFrac = Math.min(1, game.xp / xpToNext());
   ctx.fillStyle = 'rgba(57, 255, 136, 0.12)';
-  ctx.fillRect(16, ARENA_H - 22, ARENA_W - 32, 6);
+  ctx.fillRect(16, VIEW_H - 22, VIEW_W - 32, 6);
   ctx.save();
   ctx.fillStyle = '#39ff88';
   ctx.shadowColor = '#39ff88';
   ctx.shadowBlur = 8;
-  ctx.fillRect(16, ARENA_H - 22, Math.round((ARENA_W - 32) * xpFrac), 6);
+  ctx.fillRect(16, VIEW_H - 22, Math.round((VIEW_W - 32) * xpFrac), 6);
   ctx.restore();
   ctx.fillStyle = 'rgba(57, 255, 136, 0.8)';
-  ctx.fillText(`LVL ${game.level}   ${game.xp}/${xpToNext()} commits`, 16, ARENA_H - 38);
+  ctx.fillText(`LVL ${game.level}   ${game.xp}/${xpToNext()} commits`, 16, VIEW_H - 38);
   const revertIn = revertCountdown();
   if (revertIn !== null) {
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(240, 80, 51, 0.85)';
-    ctx.fillText(`git revert in ${Math.ceil(revertIn)}s`, ARENA_W - 16, ARENA_H - 38);
+    ctx.fillText(`git revert in ${Math.ceil(revertIn)}s`, VIEW_W - 16, VIEW_H - 38);
     ctx.textAlign = 'left';
   }
 
   // Red flash when hit
   if (game.hitFlash > 0) {
     ctx.fillStyle = `rgba(255, 46, 99, ${game.hitFlash * 0.18})`;
-    ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   }
 }

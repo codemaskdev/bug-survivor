@@ -1,4 +1,5 @@
-import { ARENA_W, ARENA_H, STEP } from '../config.js';
+import { VIEW_W, VIEW_H, STEP } from '../config.js';
+import { camera, isOnScreen } from '../core/camera.js';
 import { ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
 import { UP } from '../upgrades/upgrades.js';
@@ -33,14 +34,14 @@ export function revertCountdown() {
 }
 
 function wipe() {
-  const onScreen = (b) => b.x >= 0 && b.x <= ARENA_W && b.y >= 0 && b.y <= ARENA_H;
+  const onScreen = (b) => isOnScreen(b.x, b.y);
   for (const b of game.bugs) {
     if (onScreen(b)) smashFx(b.x, b.y, false, '#f05033');
   }
   game.bugs = game.bugs.filter((b) => !onScreen(b));
   revert.flash = FLASH_TIME;
   shake.amount = Math.min(10, shake.amount + 8);
-  addPopup({ x: ARENA_W / 2, y: ARENA_H / 2, text: '$ git revert HEAD', size: 26, life: 0.7, tilt: 0, color: '#f05033' }, 9999);
+  addPopup({ x: camera.x, y: camera.y, text: '$ git revert HEAD', size: 26, life: 0.7, tilt: 0, color: '#f05033' }, 9999);
 }
 
 export function updateRevert() {
@@ -57,17 +58,17 @@ export function updateRevert() {
   }
 }
 
-// Full-screen flash plus a "rewind" scanline sweeping up the arena
+// Full-screen flash plus a "rewind" scanline sweeping up the screen (screen coordinates)
 export function drawRevert() {
   if (revert.flash <= 0) return;
   const t = 1 - revert.flash / FLASH_TIME;
   ctx.save();
   ctx.fillStyle = `rgba(240, 80, 51, ${0.35 * (1 - t)})`;
-  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
-  const y = ARENA_H * (1 - t);
+  ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+  const y = VIEW_H * (1 - t);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.shadowColor = '#f05033';
   ctx.shadowBlur = 20;
-  ctx.fillRect(0, Math.round(y), ARENA_W, 3);
+  ctx.fillRect(0, Math.round(y), VIEW_W, 3);
   ctx.restore();
 }

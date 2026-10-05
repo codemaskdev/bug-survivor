@@ -1,4 +1,5 @@
-import { ARENA_W, ARENA_H, STEP, PLAYER_RADIUS, HIT_COOLDOWN } from '../../config.js';
+import { STEP, PLAYER_RADIUS, HIT_COOLDOWN } from '../../config.js';
+import { pointAroundView } from '../../core/camera.js';
 import { rng } from '../../core/rng.js';
 import { game } from '../../core/state.js';
 import { smashFx } from '../../fx/particles.js';
@@ -26,6 +27,10 @@ const TYPES = Object.fromEntries(
   [nullptr, leak, loop, merge, mergeOurs, mergeTheirs].map((s) => [s.type, s])
 );
 
+const SPAWN_MARGIN = 30;     // px outside the screen where bugs appear
+const RESPAWN_DIST = 900;    // bugs further than this from CodeMask get moved closer
+const MAX_BUGS = 160;        // a wave stops spawning once this many are alive
+
 let seenSpecies = new Set();
 let newBugs = [];            // bugs born mid-update (merge splits)
 
@@ -48,16 +53,8 @@ export function makeBug(type, x, y) {
   return b;
 }
 
-function edgePoint(edge) {
-  const t = rng();
-  if (edge === 0) return { x: t * ARENA_W, y: -14 };              // top
-  if (edge === 1) return { x: ARENA_W + 14, y: t * ARENA_H };     // right
-  if (edge === 2) return { x: t * ARENA_W, y: ARENA_H + 14 };     // bottom
-  return { x: -14, y: t * ARENA_H };                              // left
-}
-
-// Each wave is bigger than the last and pours in from one or two edges.
-// New species join the mix gradually.
+// Each wave is bigger than the last and appears just outside the screen,
+// all around CodeMask. New species join the mix gradually.
 export function spawnWave() {
   game.wave++;
   const wave = game.wave;
@@ -67,17 +64,28 @@ export function spawnWave() {
     for (let i = 0; i < sp.countForWave(wave); i++) roster.push(sp.type);
   }
 
-  const edges = [Math.floor(rng() * 4)];
-  if (wave >= 3) edges.push(Math.floor(rng() * 4));
-  roster.forEach((type, i) => {
-    const pt = edgePoint(edges[i % edges.length]);
+  for (const type of roster) {
+    if (game.bugs.length >= MAX_BUGS) break;
+    const pt = pointAroundView(SPAWN_MARGIN, rng);
     game.bugs.push(makeBug(type, pt.x, pt.y));
     if (!seenSpecies.has(type)) {
       seenSpecies.add(type);
       const sp = TYPES[type];
       showBanner(`NEW BUG: ${sp.name}`, sp.tip, sp.color);
     }
-  });
+  }
+}
+
+// A bug left far behind is moved to just outside the screen again,
+// so the pressure stays on CodeMask instead of piling up off-screen
+function respawnCloser(b) {
+  const pt = pointAroundView(SPAWN_MARGIN, rng);
+  b.x = pt.x;
+  b.y = pt.y;
+  b.kx = b.ky = 0;
+  b.stun = 0;
+  if (b.trail) b.trail = [];
+  if (b.phase) b.phase = 'approach';
 }
 
 function spawnChild(type, x, y) {
@@ -116,6 +124,7 @@ export function updateBugs() {
   for (const b of bugs) {
     const sp = TYPES[b.type];
     if (b.flash > 0) b.flash -= STEP;
+    if (Math.hypot(player.x - b.x, player.y - b.y) > RESPAWN_DIST) respawnCloser(b);
     const dx = player.x - b.x;
     const dy = player.y - b.y;
     const d = Math.hypot(dx, dy) || 1;

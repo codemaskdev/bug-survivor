@@ -2,6 +2,7 @@ import { STEP, WAVE_EVERY } from '../config.js';
 import { AUTOPLAY } from './params.js';
 import { game, resetState } from './state.js';
 import { input, readKeyboard } from './input.js';
+import { updateCamera, resetCamera } from './camera.js';
 import { player, resetPlayer, movePlayer } from '../entities/player.js';
 import { spawnWave, updateBugs, resetBugs } from '../entities/bugs/index.js';
 import { updateCommits } from '../entities/commits.js';
@@ -20,6 +21,7 @@ import { updateBanners, resetBanners } from '../ui/banner.js';
 
 export function resetGame() {
   resetPlayer();
+  resetCamera(player.x, player.y);
   resetSwing();
   resetState();
   resetBugs();
@@ -62,6 +64,7 @@ export function update() {
   }
 
   movePlayer(AUTOPLAY ? readAutoplay() : readKeyboard());
+  updateCamera(player.x, player.y);
 
   if (player.hurtTimer > 0) player.hurtTimer -= STEP;
   game.hitFlash = Math.max(0, game.hitFlash - STEP * 4);

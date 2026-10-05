@@ -1,4 +1,4 @@
-import { ARENA_W, STEP } from '../config.js';
+import { VIEW_W, STEP } from '../config.js';
 import { ctx } from '../core/canvas.js';
 import { glitchNoise } from '../fx/glitch.js';
 
@@ -31,15 +31,15 @@ export function drawBanner() {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.fillStyle = 'rgba(5, 6, 10, 0.7)';
-  ctx.fillRect(0, y - 34, ARENA_W, 68);
+  ctx.fillRect(0, y - 34, VIEW_W, 68);
   ctx.fillStyle = b.color;
-  ctx.fillRect(0, y - 34, ARENA_W, 2);
-  ctx.fillRect(0, y + 32, ARENA_W, 2);
+  ctx.fillRect(0, y - 34, VIEW_W, 2);
+  ctx.fillRect(0, y + 32, VIEW_W, 2);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = 'bold 30px monospace';
-  const x = ARENA_W / 2 + (1 - inT) * -120;
+  const x = VIEW_W / 2 + (1 - inT) * -120;
   const j = glitchNoise(3, Math.floor(age * 15)) < 0.3 ? (glitchNoise(4, Math.floor(age * 15)) - 0.5) * 10 : 0;
   ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
   ctx.fillText(b.text, x + j, y - 6);

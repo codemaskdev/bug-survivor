@@ -1,7 +1,7 @@
 // Shared tuning numbers. Species-specific numbers live in their own files.
 
-export const ARENA_W = 960;
-export const ARENA_H = 640;
+export const VIEW_W = 960;         // visible screen size; the world itself is endless
+export const VIEW_H = 640;
 export const GRID = 40;
 export const PIXEL = 3;            // size of one sprite pixel on screen
 export const PLAYER_SPEED = 180;   // px per second

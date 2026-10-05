@@ -1,8 +1,9 @@
-import { ARENA_W, ARENA_H, STEP } from '../config.js';
+import { VIEW_W, VIEW_H, STEP } from '../config.js';
 import { ctx } from './canvas.js';
 import { game } from './state.js';
 import { update } from './game.js';
-import { drawArena } from '../world/arena.js';
+import { drawGrid, drawVignette } from '../world/grid.js';
+import { camera } from './camera.js';
 import { drawCommits } from '../entities/commits.js';
 import { drawPlayer } from '../entities/player.js';
 import { drawBugs } from '../entities/bugs/index.js';
@@ -33,12 +34,20 @@ function frame(now) {
     acc -= STEP;
   }
   ctx.fillStyle = '#05060a';
-  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+  ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
-  // The world shakes, the HUD doesn't
+  // World layers are drawn in world coordinates, shifted so the camera
+  // sits at the screen center. The world shakes, the HUD doesn't.
+  const ox = Math.round(VIEW_W / 2 - camera.x + shake.x);
+  const oy = Math.round(VIEW_H / 2 - camera.y + shake.y);
   ctx.save();
-  ctx.translate(Math.round(shake.x), Math.round(shake.y));
-  drawArena(simTime);
+  ctx.translate(ox, oy);
+  drawGrid(simTime);
+  ctx.restore();
+  drawVignette();
+
+  ctx.save();
+  ctx.translate(ox, oy);
   drawReview();
   drawCommits(simTime);
   drawPlayer(simTime);
@@ -48,8 +57,10 @@ function frame(now) {
   drawTests();
   drawDuck();
   drawFx();
-  drawRevert();
   ctx.restore();
+
+  // Screen-fixed layers
+  drawRevert();
 
   drawHud();
   drawBanner();

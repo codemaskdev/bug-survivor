@@ -5,6 +5,7 @@ import { player } from './player.js';
 import { openUpgradeCards } from '../upgrades/levelup.js';
 
 // Commits are XP: dead bugs drop them, CodeMask walks over them to collect.
+const COMMIT_FORGET = 1400;  // px: commits this far away are gone for good
 
 export function xpToNext() {
   return 5 + (game.level - 1) * 4;
@@ -29,7 +30,8 @@ export function updateCommits() {
       c.y += (dy / d) * pull * STEP;
     }
   }
-  game.commits = game.commits.filter((c) => !c.taken);
+  // Commits left far behind in the endless world are dropped
+  game.commits = game.commits.filter((c) => !c.taken && Math.hypot(player.x - c.x, player.y - c.y) < COMMIT_FORGET);
 
   if (game.xp >= xpToNext()) {
     game.xp -= xpToNext();

@@ -1,4 +1,4 @@
-import { ARENA_W, ARENA_H, PIXEL, STEP, PLAYER_SPEED, PLAYER_MAX_HP } from '../config.js';
+import { PIXEL, STEP, PLAYER_SPEED, PLAYER_MAX_HP } from '../config.js';
 import { ctx } from '../core/canvas.js';
 import { UP } from '../upgrades/upgrades.js';
 import { swing } from '../weapons/keyboard.js';
@@ -31,9 +31,10 @@ const EYE_COLOR = '#00f0ff';
 const SPRITE_W = SPRITE[0].length * PIXEL;
 const SPRITE_H = SPRITE.length * PIXEL;
 
+// World coordinates; the world is endless and CodeMask starts at its origin
 export const player = {
-  x: ARENA_W / 2,
-  y: ARENA_H / 2,
+  x: 0,
+  y: 0,
   lookX: 0,      // -1, 0, 1: where the eyes point
   lookY: 0,
   walkTime: 0,
@@ -44,8 +45,8 @@ export const player = {
 };
 
 export function resetPlayer() {
-  player.x = ARENA_W / 2;
-  player.y = ARENA_H / 2;
+  player.x = 0;
+  player.y = 0;
   player.lookX = 0;
   player.lookY = 0;
   player.hp = PLAYER_MAX_HP;
@@ -58,7 +59,7 @@ function playerSpeed() {
   return PLAYER_SPEED * (1 + UP.coffee.level * 0.15);
 }
 
-// Moves CodeMask by an input direction (any length) and keeps it inside the arena
+// Moves CodeMask by an input direction (any length). No walls: the world is endless.
 export function movePlayer(input) {
   const len = Math.hypot(input.x, input.y);
   player.moving = len > 0;
@@ -75,12 +76,6 @@ export function movePlayer(input) {
   } else {
     player.walkTime = 0;
   }
-
-  // Keep CodeMask inside the arena walls
-  const halfW = SPRITE_W / 2;
-  const halfH = SPRITE_H / 2;
-  player.x = Math.max(halfW + 4, Math.min(ARENA_W - halfW - 4, player.x));
-  player.y = Math.max(halfH + 4, Math.min(ARENA_H - halfH - 4, player.y));
 }
 
 export function drawPlayer(time) {

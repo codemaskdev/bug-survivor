@@ -2,45 +2,45 @@
   "seconds": 90,
   "runs": {
     "seed1": {
-      "hash": "ba507678c4ac1492",
-      "canvasCalls": 29728970,
+      "hash": "f3f248241c275d3c",
+      "canvasCalls": 34927682,
       "hud": [
         "AUTOPLAY  seed 1   WAVE 3",
         "HP 100",
-        "SMASHED 14",
-        "REVIEW 1",
-        "LVL 3   0/13 commits",
-        "LEVEL UP  ·  LVL 3"
+        "SMASHED 0",
+        "LVL 1   0/5 commits"
       ]
     },
     "seed2": {
-      "hash": "9e869cda8db7b608",
-      "canvasCalls": 23994238,
+      "hash": "7e1211a197a3c319",
+      "canvasCalls": 54218412,
       "hud": [
-        "AUTOPLAY  seed 2   WAVE 3",
-        "HP 100",
-        "SMASHED 0",
-        "LVL 1   0/5 commits"
+        "AUTOPLAY  seed 2   WAVE 15",
+        "HP 70",
+        "SMASHED 70",
+        "REVIEW 1  ·  DUCK 1",
+        "LVL 3   4/13 commits"
       ]
     },
     "seed7": {
-      "hash": "a8c1df60e86b5eb0",
-      "canvasCalls": 38179098,
+      "hash": "ffc72a8739717c82",
+      "canvasCalls": 58638673,
       "hud": [
-        "AUTOPLAY  seed 7   WAVE 1",
-        "HP 100",
-        "SMASHED 0",
-        "LVL 1   0/5 commits"
+        "AUTOPLAY  seed 7   WAVE 15",
+        "HP 55",
+        "SMASHED 17",
+        "TESTS 1  ·  DUCK 1",
+        "LVL 3   0/13 commits"
       ]
     },
     "manual": {
-      "hash": "7d7b26031d69f67e",
-      "canvasCalls": 3886172,
+      "hash": "121fb9414127cc8c",
+      "canvasCalls": 8041587,
       "hud": [
-        "WAVE 1",
-        "HP 100",
-        "SMASHED 0",
-        "LVL 1   0/5 commits"
+        "WAVE 3",
+        "HP 60",
+        "SMASHED 5",
+        "LVL 1   2/5 commits"
       ]
     }
   }

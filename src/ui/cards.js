@@ -1,4 +1,4 @@
-import { ARENA_W, ARENA_H } from '../config.js';
+import { VIEW_W, VIEW_H } from '../config.js';
 import { AUTOPLAY } from '../core/params.js';
 import { canvas, ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
@@ -11,8 +11,8 @@ const CARD_W = 220, CARD_H = 260, CARD_GAP = 30;
 function cardRect(i) {
   const total = CARD_W * 3 + CARD_GAP * 2;
   return {
-    x: (ARENA_W - total) / 2 + i * (CARD_W + CARD_GAP),
-    y: (ARENA_H - CARD_H) / 2 + 20,
+    x: (VIEW_W - total) / 2 + i * (CARD_W + CARD_GAP),
+    y: (VIEW_H - CARD_H) / 2 + 20,
     w: CARD_W,
     h: CARD_H,
   };
@@ -29,13 +29,13 @@ function cardAt(px, py) {
 canvas.addEventListener('mousemove', (e) => {
   if (game.state !== 'levelup' || AUTOPLAY) return;
   const r = canvas.getBoundingClientRect();
-  const i = cardAt((e.clientX - r.left) * ARENA_W / r.width, (e.clientY - r.top) * ARENA_H / r.height);
+  const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) game.cardChoice = i;
 });
 canvas.addEventListener('click', (e) => {
   if (game.state !== 'levelup' || AUTOPLAY) return;
   const r = canvas.getBoundingClientRect();
-  const i = cardAt((e.clientX - r.left) * ARENA_W / r.width, (e.clientY - r.top) * ARENA_H / r.height);
+  const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) pickCard(i);
 });
 
@@ -58,7 +58,7 @@ function wrapText(text, maxW) {
 
 export function drawUpgradeCards() {
   ctx.fillStyle = `rgba(5, 6, 10, ${Math.min(0.75, game.levelupTime * 4)})`;
-  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+  ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
   ctx.save();
   ctx.textAlign = 'center';
@@ -67,7 +67,7 @@ export function drawUpgradeCards() {
   ctx.fillStyle = '#39ff88';
   ctx.shadowColor = '#39ff88';
   ctx.shadowBlur = 16;
-  ctx.fillText(`LEVEL UP  ·  LVL ${game.level}`, ARENA_W / 2, cardRect(0).y - 50);
+  ctx.fillText(`LEVEL UP  ·  LVL ${game.level}`, VIEW_W / 2, cardRect(0).y - 50);
   ctx.restore();
 
   const slide = Math.min(1, game.levelupTime * 5);
@@ -133,6 +133,6 @@ export function drawUpgradeCards() {
   ctx.font = '13px monospace';
   ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
   ctx.fillText(AUTOPLAY ? 'bot is choosing…' : '1 / 2 / 3, click, or ← → + Enter',
-    ARENA_W / 2, cardRect(0).y + CARD_H + 40);
+    VIEW_W / 2, cardRect(0).y + CARD_H + 40);
   ctx.restore();
 }
