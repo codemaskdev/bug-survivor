@@ -15,3 +15,20 @@ Built `index.html` + `game.js`: a 960×640 canvas arena with a faintly pulsing c
 What surprised me: a pure black hoodie on a black arena is basically invisible, so the sprite needed a subtle outline color. Also the browser tool refuses `file://` URLs, so I had to spin up a throwaway local server just to look at the game. I checked autoplay determinism by replaying the bot logic twice with seed 1: same position both times; seed 2 ends somewhere else.
 
 Commit: `26f472f`
+
+## 18:14 — Null Pointer bugs, health and BUILD FAILED
+
+> Now add the first enemy: Null Pointer bugs.
+>
+> They're small, fast, and spawn in waves from the edges of the arena,
+> crawling straight toward CodeMask. Make them look like little glitchy
+> red-pink bugs.
+>
+> If one touches CodeMask, it deals damage. Give CodeMask a health bar,
+> and when it hits zero, show "BUILD FAILED" and let me restart.
+
+Added Null Pointer bugs: tiny two-frame red-pink pixel sprites that rotate to face CodeMask and now and then split into a jittering cyan ghost. Waves start at 1.5 s and come every 6 s, each one bigger (6, 8, 10… bugs) and from one random edge, two edges from wave 3 on. A touching bug deals 10 damage, gets knocked back, and CodeMask flickers for 0.7 s of invulnerability. There's an HP bar that turns red under 30%, a red screen flash on hits, and a glitchy BUILD FAILED screen with survival time and wave; R, Enter or Space restarts. In autoplay the bot now runs away from nearby bugs and walls, and the demo restarts itself 3 s after dying.
+
+What broke: two bugs on the first try. (1) The glitch effect was supposed to hit about 12% of frames, but in screenshots half the swarm was glitching all the time. The hash returned a *signed* 32-bit number, so every negative value counted as "glitch": measured rate 62%. A single `>>> 0` brought it down to 11.9%. (2) Pressing R on BUILD FAILED did nothing. A quick tap pressed and released the key between two simulation steps, so `keys.has('KeyR')` never saw it. Now the keydown handler latches a `restartPressed` flag. I checked determinism with a headless node run: 90 s of autoplay with seed 1 twice gave the exact same position, HP, wave and deaths; seed 2 went differently. Known gap: bugs never die yet, so they pile up (50 alive by wave 5). That's for the weapons step.
+
+Commit: `baf37f9`
