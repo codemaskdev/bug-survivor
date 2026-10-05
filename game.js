@@ -21,6 +21,11 @@ const BUG_DAMAGE = 10;
 const FIRST_WAVE_AT = 1.5;  // seconds
 const WAVE_EVERY = 6;       // seconds between waves
 
+const SWING_TIME = 0.16;     // how long the keyboard arc lasts
+const SWING_COOLDOWN = 0.45; // from the start of one swing to the next
+const SWING_REACH = 64;      // px from CodeMask's center
+const SWING_ARC = Math.PI * 0.75; // 135° in front of CodeMask
+
 const params = new URLSearchParams(location.search);
 const AUTOPLAY = params.get('autoplay') === '1';
 const SEED = Number(params.get('seed')) || 1;
@@ -37,6 +42,8 @@ function makeRng(seed) {
   };
 }
 const rng = makeRng(SEED);
+// Separate stream for visual effects, so juice never changes gameplay
+const fxRng = makeRng(SEED ^ 0x9E3779B9);
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
@@ -55,10 +62,12 @@ fitCanvas();
 // ---------- Input ----------
 const keys = new Set();
 let restartPressed = false;  // latched, so a quick tap between frames isn't lost
+let swingPressed = false;    // same trick for the keyboard swing
 window.addEventListener('keydown', (e) => {
   keys.add(e.code);
-  if (e.code === 'KeyR' || e.code === 'Enter' || e.code === 'Space') restartPressed = true;
-  if (e.code.startsWith('Arrow')) e.preventDefault();
+  if (e.code === 'KeyR' || e.code === 'Enter') restartPressed = true;
+  if (e.code === 'Space' || e.code === 'KeyJ') swingPressed = true;
+  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
 window.addEventListener('blur', () => keys.clear());
@@ -110,6 +119,14 @@ const player = {
   moving: false,
   hp: PLAYER_MAX_HP,
   hurtTimer: 0,  // > 0 while invulnerable after a hit
+  facing: 0,     // radians, direction of the last movement (0 = right)
+};
+
+// ---------- Keyboard swing ----------
+const swing = {
+  timer: 0,      // > 0 while the arc is in the air
+  cooldown: 0,   // > 0 until the next swing is allowed
+  angle: 0,      // center of the arc
 };
 
 // ---------- Game state ----------
@@ -121,6 +138,11 @@ let roundTime = 0;          // seconds since this run started
 let overTime = 0;           // seconds since BUILD FAILED appeared
 let nextBugId = 0;
 let hitFlash = 0;           // red screen flash after taking damage
+let smashed = 0;            // bugs smashed this run
+let particles = [];         // flying keycaps and bug bits
+let popups = [];            // "CLACK!" texts
+let shake = 0;              // screen shake strength, decays to 0
+let shakeX = 0, shakeY = 0;
 
 function resetGame() {
   player.x = ARENA_W / 2;
@@ -129,6 +151,13 @@ function resetGame() {
   player.lookY = 0;
   player.hp = PLAYER_MAX_HP;
   player.hurtTimer = 0;
+  player.facing = 0;
+  swing.timer = 0;
+  swing.cooldown = 0;
+  smashed = 0;
+  particles = [];
+  popups = [];
+  shake = 0;
   bugs = [];
   wave = 0;
   nextWaveAt = FIRST_WAVE_AT;
@@ -208,6 +237,114 @@ function updateBugs() {
   }
 }
 
+function angleDiff(a, b) {
+  let d = a - b;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return d;
+}
+
+function startSwing(angle) {
+  if (swing.cooldown > 0) return;
+  swing.angle = angle;
+  swing.timer = SWING_TIME;
+  swing.cooldown = SWING_COOLDOWN;
+}
+
+// Any bug inside the arc while the keyboard is in the air gets smashed
+function updateSwing() {
+  if (swing.cooldown > 0) swing.cooldown -= STEP;
+  if (swing.timer <= 0) return;
+  swing.timer -= STEP;
+
+  const hits = [];
+  bugs = bugs.filter((b) => {
+    const dx = b.x - player.x;
+    const dy = b.y - player.y;
+    const inReach = Math.hypot(dx, dy) < SWING_REACH + BUG_RADIUS;
+    const inArc = Math.abs(angleDiff(Math.atan2(dy, dx), swing.angle)) < SWING_ARC / 2;
+    if (inReach && inArc) {
+      hits.push(b);
+      return false;
+    }
+    return true;
+  });
+  if (hits.length === 0) return;
+
+  smashed += hits.length;
+  shake = Math.min(6, shake + 2 + hits.length);
+  for (const b of hits) smashFx(b.x, b.y);
+  const cx = hits.reduce((s, b) => s + b.x, 0) / hits.length;
+  const cy = hits.reduce((s, b) => s + b.y, 0) / hits.length;
+  popups.push({
+    x: cx,
+    y: cy - 10,
+    text: hits.length > 1 ? `CLACK! x${hits.length}` : 'CLACK!',
+    life: 0.7,
+    tilt: (fxRng() - 0.5) * 0.4,
+  });
+}
+
+const KEYCAP_LETTERS = 'QWERTYASDFGHZXCV{};/<>';
+
+function smashFx(x, y) {
+  // Keycaps pop off and tumble away
+  const caps = 2 + Math.floor(fxRng() * 2);
+  for (let i = 0; i < caps; i++) {
+    const a = fxRng() * Math.PI * 2;
+    const v = 90 + fxRng() * 120;
+    particles.push({
+      kind: 'cap',
+      x, y,
+      vx: Math.cos(a) * v,
+      vy: Math.sin(a) * v - 80,
+      rot: fxRng() * Math.PI,
+      spin: (fxRng() - 0.5) * 16,
+      letter: KEYCAP_LETTERS[Math.floor(fxRng() * KEYCAP_LETTERS.length)],
+      life: 0.6 + fxRng() * 0.3,
+    });
+  }
+  // Plus a few red bug bits
+  for (let i = 0; i < 5; i++) {
+    const a = fxRng() * Math.PI * 2;
+    const v = 60 + fxRng() * 140;
+    particles.push({
+      kind: 'bit',
+      x, y,
+      vx: Math.cos(a) * v,
+      vy: Math.sin(a) * v,
+      rot: 0, spin: 0, letter: '',
+      life: 0.25 + fxRng() * 0.25,
+    });
+  }
+}
+
+function updateFx() {
+  for (const p of particles) {
+    p.life -= STEP;
+    p.x += p.vx * STEP;
+    p.y += p.vy * STEP;
+    p.vx *= 0.94;
+    p.vy = p.vy * 0.94 + (p.kind === 'cap' ? 500 * STEP : 0);
+    p.rot += p.spin * STEP;
+  }
+  particles = particles.filter((p) => p.life > 0);
+
+  for (const p of popups) {
+    p.life -= STEP;
+    p.y -= 40 * STEP;
+  }
+  popups = popups.filter((p) => p.life > 0);
+
+  if (shake > 0) {
+    shakeX = (fxRng() - 0.5) * shake * 2;
+    shakeY = (fxRng() - 0.5) * shake * 2;
+    shake = Math.max(0, shake - STEP * 40);
+  } else {
+    shakeX = shakeY = 0;
+  }
+}
+
 // ---------- Autoplay brain ----------
 // Wanders between random points in the arena, pausing now and then,
 // and steers away from any bug that gets too close.
@@ -253,6 +390,18 @@ function readAutoplay() {
   return { x: dx * 0.6 + fx * 3, y: dy * 0.6 + fy * 3 };
 }
 
+// Turn toward the closest bug in reach and swing at it
+function autoplaySwing() {
+  let best = null, bestD = SWING_REACH * 0.9;
+  for (const b of bugs) {
+    const d = Math.hypot(b.x - player.x, b.y - player.y);
+    if (d < bestD) { best = b; bestD = d; }
+  }
+  if (!best || swing.cooldown > 0) return;
+  player.facing = Math.atan2(best.y - player.y, best.x - player.x);
+  startSwing(player.facing);
+}
+
 // ---------- Update ----------
 function update() {
   if (state === 'over') {
@@ -261,6 +410,8 @@ function update() {
     if (AUTOPLAY && overTime > 3) resetGame();
     else if (!AUTOPLAY && overTime > 0.5 && restartPressed) resetGame();
     restartPressed = false;
+    swingPressed = false;
+    updateFx();
     return;
   }
   restartPressed = false;
@@ -282,6 +433,7 @@ function update() {
     player.y += ny * PLAYER_SPEED * STEP;
     player.lookX = Math.abs(nx) > 0.3 ? Math.sign(nx) : 0;
     player.lookY = Math.abs(ny) > 0.3 ? Math.sign(ny) : 0;
+    player.facing = Math.atan2(ny, nx);
     player.walkTime += STEP;
   } else {
     player.walkTime = 0;
@@ -296,7 +448,13 @@ function update() {
   if (player.hurtTimer > 0) player.hurtTimer -= STEP;
   hitFlash = Math.max(0, hitFlash - STEP * 4);
 
+  if (AUTOPLAY) autoplaySwing();
+  else if (swingPressed || keys.has('Space') || keys.has('KeyJ')) startSwing(player.facing);
+  swingPressed = false;
+
+  updateSwing();
   updateBugs();
+  updateFx();
 
   if (player.hp <= 0) {
     state = 'over';
@@ -456,8 +614,15 @@ function drawPlayer(time) {
   // A quick blink every few seconds.
   const blinking = (time % 4) < 0.12;
   if (blinking) return;
-  const eyeRow = 4 + Math.max(0, player.lookY) - Math.max(0, -player.lookY);
-  const eyeCols = [4 + player.lookX, 7 + player.lookX];
+  // Mid-swing, the eyes follow the keyboard instead of the feet
+  let lookX = player.lookX, lookY = player.lookY;
+  if (swing.timer > 0) {
+    const cx = Math.cos(swing.angle), cy = Math.sin(swing.angle);
+    lookX = Math.abs(cx) > 0.3 ? Math.sign(cx) : 0;
+    lookY = Math.abs(cy) > 0.3 ? Math.sign(cy) : 0;
+  }
+  const eyeRow = 4 + Math.max(0, lookY) - Math.max(0, -lookY);
+  const eyeCols = [4 + lookX, 7 + lookX];
   ctx.save();
   ctx.fillStyle = EYE_COLOR;
   ctx.shadowColor = EYE_COLOR;
@@ -466,6 +631,86 @@ function drawPlayer(time) {
     ctx.fillRect(left + col * PIXEL, top + eyeRow * PIXEL, PIXEL, PIXEL);
   }
   ctx.restore();
+}
+
+// The keyboard sweeps across the arc, leaving a faint cyan swoosh
+function drawSwing() {
+  if (swing.timer <= 0) return;
+  const t = 1 - swing.timer / SWING_TIME;
+  const eased = 1 - (1 - t) * (1 - t);
+  const start = swing.angle - SWING_ARC / 2;
+  const now = start + SWING_ARC * eased;
+
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  ctx.strokeStyle = `rgba(0, 240, 255, ${0.35 * (1 - t * 0.5)})`;
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, 0, SWING_REACH * 0.68, start, now);
+  ctx.stroke();
+
+  ctx.rotate(now);
+  const r = 36;
+  // Body (long side along the arc)
+  ctx.fillStyle = '#9fb3c8';
+  ctx.fillRect(r - 7, -18, 14, 36);
+  ctx.fillStyle = '#1a1c24';
+  ctx.fillRect(r - 5, -16, 10, 32);
+  // Keys: 2 rows of 6 light caps
+  ctx.fillStyle = '#e6ebf2';
+  for (let row = 0; row < 2; row++) {
+    for (let k = 0; k < 6; k++) {
+      ctx.fillRect(r - 4 + row * 5, -15 + k * 5, 3, 3);
+    }
+  }
+  ctx.restore();
+}
+
+function drawFx() {
+  for (const p of particles) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, p.life * 3);
+    ctx.translate(p.x, p.y);
+    if (p.kind === 'cap') {
+      ctx.rotate(p.rot);
+      ctx.fillStyle = '#9fb3c8';
+      ctx.fillRect(-5, -5, 10, 10);
+      ctx.fillStyle = '#e6ebf2';
+      ctx.fillRect(-4, -5, 8, 7);
+      ctx.fillStyle = '#1a1c24';
+      ctx.font = 'bold 7px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.letter, 0, -1.5);
+    } else {
+      ctx.fillStyle = '#ff2e63';
+      ctx.fillRect(-1, -1, 2, 2);
+    }
+    ctx.restore();
+  }
+
+  for (const p of popups) {
+    const age = 0.7 - p.life;
+    const pop = age < 0.08 ? 0.6 + age / 0.08 * 0.6 : 1.2 - Math.min(0.2, (age - 0.08) * 2);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, p.life * 3);
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.tilt);
+    ctx.scale(pop, pop);
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#05060a';
+    ctx.strokeText(p.text, 0, 0);
+    ctx.fillStyle = '#fff36b';
+    ctx.shadowColor = '#fff36b';
+    ctx.shadowBlur = 10;
+    ctx.fillText(p.text, 0, 0);
+    ctx.restore();
+  }
 }
 
 function drawHud() {
@@ -493,6 +738,7 @@ function drawHud() {
   ctx.fillStyle = 'rgba(0, 240, 255, 0.55)';
   ctx.font = '11px monospace';
   ctx.fillText(`HP ${player.hp}`, x + w + 10, y - 1);
+  ctx.fillText(`SMASHED ${smashed}`, x, y + 18);
 
   // Red flash when hit
   if (hitFlash > 0) {
@@ -521,7 +767,7 @@ function drawGameOver() {
 
   ctx.font = '16px monospace';
   ctx.fillStyle = 'rgba(0, 240, 255, 0.8)';
-  ctx.fillText(`survived ${roundTime.toFixed(1)}s  ·  reached wave ${wave}`, ARENA_W / 2, ARENA_H / 2 + 44);
+  ctx.fillText(`survived ${roundTime.toFixed(1)}s  ·  reached wave ${wave}  ·  smashed ${smashed}`, ARENA_W / 2, ARENA_H / 2 + 44);
   if (!AUTOPLAY && Math.floor(overTime * 2) % 2 === 0) {
     ctx.fillText('press R to rebuild', ARENA_W / 2, ARENA_H / 2 + 74);
   }
@@ -541,9 +787,16 @@ function frame(now) {
     simTime += STEP;
     acc -= STEP;
   }
+  ctx.fillStyle = '#05060a';
+  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+  ctx.save();
+  ctx.translate(Math.round(shakeX), Math.round(shakeY));
   drawArena(simTime);
   drawPlayer(simTime);
   drawBugs(simTime);
+  drawSwing();
+  drawFx();
+  ctx.restore();
   drawHud();
   if (state === 'over') drawGameOver();
   requestAnimationFrame(frame);
