@@ -149,3 +149,24 @@ First step of this prompt (the new upgrades follow in their own commits): the �
 What broke: nothing broke. The replay check showed exactly what I expected: all four scenarios changed hash, but every HUD number stayed identical and only the canvas call count grew (the icons are drawn pixel by pixel), so I re-recorded the golden file in the same commit.
 
 Commit: `5af2401`
+
+## 18:55 — Unit Tests and a real card pool
+
+> More upgrades for the card pool:
+>
+> - Unit Tests: shields orbiting CodeMask that smash bugs on contact.
+>   More levels = more shields.
+> - Code Review: every few seconds, a pulse wave around CodeMask that
+>   damages and pushes back all nearby bugs.
+> - Rubber Duck: a little duck companion that follows CodeMask and pecks
+>   the nearest bug. Squeaks when it hits.
+> - git revert: every 30 seconds, wipes all bugs on screen. Rare card.
+>
+> Also replace the emoji icons on all cards with small pixel-art icons
+> drawn in code, matching the game's neon style.
+
+Unit Tests puts little green ✓ shields in orbit around CodeMask (two at level 1, one more per level, up to 8); a shield deals 1 damage to a bug it touches and bounces it away, and can't hit the same bug again for 0.4 s. With four upgrades the cards can no longer just show everything, so a level-up now draws 3 different cards from a weighted pool using the seeded RNG, and the HUD lists upgrades by short names (LINTER 1 · MECH 3 · TESTS 2) so the line still fits.
+
+What surprised me: on seed 1 the bot now dies at 83 s (wave 12), where before it survived the whole 90 s. Unit Tests isn't the cause: the bot happened never to be offered or pick Linter this time, because it now chooses from 3 random cards instead of always seeing all of them. Seeds 2 and 7 still survive.
+
+Commit: `69d3b9d`
