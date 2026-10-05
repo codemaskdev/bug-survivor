@@ -581,3 +581,36 @@ Item 1: every sound is synthesized in src/fx/sound.js from oscillators and seede
 What broke: when I measured every sound offline, the BUILD FAILED and WEEKEND RUINED jingles peaked at 0.024 and 0.025, five times quieter than the win fanfare (0.124), so they were raised to 0.098 and 0.059. Nothing peaks above 0.17.
 
 Commit: `9e6a68e`
+
+## 20:32 — A findable hero
+
+> Polish pass:
+>
+> 1. Sound. Synthesize everything with Web Audio, no files: keyboard
+>    CLACK, bug squish, commit pickup, level-up chime, card select,
+>    Linter zap, duck squeak, Burnout crackle, git revert whoosh, boss
+>    hits, Rollback, and a short jingle for each of the three endings.
+>    Keep it punchy and not too loud. M toggles mute, show it in the HUD.
+>
+> 2. Mini-CodeMask is too dim and gets lost among colorful bugs. Make
+>    him instantly findable, matching my big avatar's style:
+>    - bright cyan neon outline around the black hoodie
+>    - two cyan hoodie drawstrings
+>    - bigger eyes: small pixel-art trapezoids like my avatar's, glowing
+>    - a soft cyan glow and a ground ring under him
+>    Cyan is the hero's color: make sure no bug uses it as a main color.
+>
+> 3. Bug: if a git revert flash coincides with a level-up, the red flash
+>    freezes under the cards. Fix it.
+>
+> 4. The boss siren is too harsh and startling, especially in
+>    headphones. Make it softer: lower volume, smoother tone, gentle
+>    fade in and out. Tense, not scary.
+>
+> Re-record the replay-check baseline after.
+
+Item 2: Mini-CodeMask is redrawn with 2 px pixels (18×20, about the same size as before) so it has room for the details: a bright cyan neon outline around the black hoodie, two cyan drawstrings with pale tips, and the big avatar's eyes as glowing 4×3 trapezoids, wide on top and narrowing down toward the nose, still looking where it walks. Under it there's a soft cyan glow and a pulsing ring on the ground, which stays visible even while the sprite flickers after a hit. The only cyan on any bug was the Null Pointer's glitch ghost; it's magenta now.
+
+What broke: nothing broke. I read the eye shape from the avatar project's eye pixel table without changing anything there.
+
+Commit: `cd28d62`
