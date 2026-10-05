@@ -191,6 +191,21 @@ export function sfxRollback() {
   osc.stop(t + 1.05); lfo.stop(t + 1.05);
 }
 
+// Pair Programmer lands: a deep boom and a power chord
+export function sfxPairDrop() {
+  if (!audio) return;
+  tone({ type: 'sine', from: 120, to: 40, dur: 0.4, vol: 0.3 });
+  noise({ dur: 0.25, vol: 0.15, type: 'lowpass', freq: 500 });
+  [196, 294, 392].forEach((f) => tone({ type: 'sawtooth', from: f, at: 0.08, dur: 0.5, vol: 0.035 }));
+}
+
+// Pair Programmer's machine guns: rapid dry ticks
+export function sfxGun() {
+  if (!audio || throttled('gun', 0.06)) return;
+  noise({ dur: 0.03, vol: 0.07, type: 'highpass', freq: 1800 });
+  tone({ type: 'square', from: 180, to: 90, dur: 0.03, vol: 0.03 });
+}
+
 // Endings: a short jingle each
 export function sfxEnding(kind) {
   if (!audio) return;

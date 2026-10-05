@@ -15,7 +15,7 @@ import { updateRevert, resetRevert, fadeRevertFlash } from '../weapons/revert.js
 import { updateBurnout, resetBurnout } from '../weapons/burnout.js';
 import { resetUpgrades } from '../upgrades/upgrades.js';
 import { updateLevelup } from '../upgrades/levelup.js';
-import { readAutoplay, autoplaySwing, resetBot } from '../ai/bot.js';
+import { readAutoplay, autoplaySwing, autoplayCallPair, resetBot } from '../ai/bot.js';
 import { updateFx, resetFx } from '../fx/particles.js';
 import { resetShake } from '../fx/shake.js';
 import { updateBanners, resetBanners } from '../ui/banner.js';
@@ -23,6 +23,7 @@ import { updateDeploy, resetDeploy } from '../boss/deploy.js';
 import { RUN_SECONDS } from './clock.js';
 import { isEnded } from '../ui/screens.js';
 import { sfxEnding } from '../fx/sound.js';
+import { updatePair, resetPair, callPair, unlockPair } from '../allies/pair.js';
 
 export function resetGame() {
   resetPlayer();
@@ -41,6 +42,7 @@ export function resetGame() {
   resetRevert();
   resetBurnout();
   resetDeploy();
+  resetPair();
   resetBot();
 }
 
@@ -55,6 +57,7 @@ export function update() {
     else if (!AUTOPLAY && game.overTime > 0.5 && input.restartPressed) resetGame();
     input.restartPressed = false;
     input.swingPressed = false;
+    input.callPressed = false;
     updateFx();
     return;
   }
@@ -63,6 +66,7 @@ export function update() {
   if (game.state === 'levelup') {
     // Game is paused while the cards are up
     updateLevelup();
+    input.callPressed = false;
     return;
   }
 
@@ -84,6 +88,10 @@ export function update() {
   else if (input.swingPressed || input.keys.has('Space') || input.keys.has('KeyJ')) startSwing(player.facing);
   input.swingPressed = false;
 
+  if (AUTOPLAY) autoplayCallPair();
+  else if (input.callPressed) callPair();
+  input.callPressed = false;
+
   updateSwing();
   updateLinter();
   updateTests();
@@ -91,6 +99,7 @@ export function update() {
   updateDuck();
   updateRevert();
   updateBurnout();
+  updatePair();
   updateBugs();
   updateCommits();
   updateBanners();
@@ -105,5 +114,7 @@ export function update() {
     game.overTime = 0;
     player.hurtTimer = 0;
     sfxEnding(game.state);
+    // Losing to the boss unlocks the Pair Programmer for later runs
+    if ((game.state === 'over' && game.bossPhase) || game.state === 'timeout') unlockPair();
   }
 }

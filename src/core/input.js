@@ -7,6 +7,7 @@ export const input = {
   keys: new Set(),
   restartPressed: false,  // latched, so a quick tap between frames isn't lost
   swingPressed: false,    // same trick for the keyboard swing
+  callPressed: false,     // B: call the Pair Programmer
 };
 
 window.addEventListener('keydown', (e) => {
@@ -15,6 +16,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyR' || e.code === 'Enter') input.restartPressed = true;
   if (e.code === 'Space' || e.code === 'KeyJ') input.swingPressed = true;
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
+  if (e.code === 'KeyB') input.callPressed = true;
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
   if (game.state === 'levelup' && !AUTOPLAY) handleCardKey(e.code);
 });

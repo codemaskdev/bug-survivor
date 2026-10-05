@@ -21,6 +21,7 @@ import { drawHud } from '../ui/hud.js';
 import { drawBanner } from '../ui/banner.js';
 import { drawUpgradeCards } from '../ui/cards.js';
 import { drawEnding, isEnded } from '../ui/screens.js';
+import { drawPair, drawPairHint } from '../allies/pair.js';
 
 // Fixed-step simulation, drawn once per animation frame
 let simTime = 0;
@@ -60,6 +61,7 @@ function frame(now) {
   drawLints();
   drawTests();
   drawDuck();
+  drawPair();
   drawFx();
   ctx.restore();
 
@@ -69,6 +71,7 @@ function frame(now) {
 
   drawHud();
   drawBossBar();
+  drawPairHint(simTime);
   drawBanner();
   if (game.state === 'levelup') drawUpgradeCards();
   if (isEnded(game.state)) drawEnding();

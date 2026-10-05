@@ -5,6 +5,8 @@ import { UPGRADES } from '../upgrades/upgrades.js';
 import { player } from '../entities/player.js';
 import { swing, swingReach, startSwing } from '../weapons/keyboard.js';
 import { bossBlocks } from '../boss/attacks.js';
+import { canCallPair, callPair } from '../allies/pair.js';
+import { BOSS_AT } from '../boss/deploy.js';
 
 // ---------- Autoplay brain (open world) ----------
 // Fights in rhythm with the keyboard: steps in toward the nearest bug while
@@ -162,6 +164,11 @@ export function autoplaySwing() {
   if (!best || swing.cooldown > 0) return;
   player.facing = Math.atan2(best.y - player.y, best.x - player.x);
   startSwing(player.facing);
+}
+
+// Calls in the Pair Programmer once the boss fight is properly underway
+export function autoplayCallPair() {
+  if (canCallPair() && game.roundTime >= BOSS_AT + 5) callPair();
 }
 
 // ---------- Card picks ----------
