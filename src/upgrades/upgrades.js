@@ -43,6 +43,15 @@ export const UPGRADES = [
       ? 'Every 4s a pulse damages and pushes back nearby bugs.'
       : `Pulses every ${Math.max(1.5, 4 - lv * 0.5)}s, reaches further.`,
   },
+  {
+    key: 'duck',
+    name: 'Rubber Duck',
+    short: 'DUCK',
+    level: 0,
+    describe: (lv) => lv === 0
+      ? 'A duck buddy follows you and pecks the nearest bug.'
+      : 'The duck pecks faster and harder. Squeak!',
+  },
 ];
 export const UP = Object.fromEntries(UPGRADES.map((u) => [u.key, u]));
 

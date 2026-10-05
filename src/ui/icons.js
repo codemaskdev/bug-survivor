@@ -108,6 +108,27 @@ const ICONS = {
       '................',
     ],
   },
+  duck: {
+    colors: { Y: '#ffd23f', B: '#ff8c1a', E: '#0b0d13', w: '#e0a800' },
+    rows: [
+      '................',
+      '................',
+      '.....YYYY.......',
+      '....YYYYYY......',
+      '....YYYEYY......',
+      '....YYYYYYBB....',
+      '....YYYYYYBBB...',
+      '.....YYYYY......',
+      '..Y.YYYYYYYY....',
+      '..YYYYYYYYYYY...',
+      '..YYYwwwwYYYY...',
+      '..YYYYwwwYYYY...',
+      '...YYYYYYYYY....',
+      '....YYYYYYY.....',
+      '................',
+      '................',
+    ],
+  },
 };
 
 const ICON_PIXEL = 3;
