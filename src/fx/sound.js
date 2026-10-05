@@ -9,28 +9,29 @@ export function unlockAudio() {
   audio = new AudioContext();
 }
 
-// Air-raid style siren: two detuned saws sweeping up and down
-export function playSiren(seconds = 2.4) {
+// A soft, tense warning tone: two slightly detuned sines slowly gliding
+// up and down, fading in and out. Meant to build tension, not to startle.
+export function playSiren(seconds = 3) {
   if (!audio) return;
   const now = audio.currentTime;
   const gain = audio.createGain();
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.12, now + 0.15);
-  gain.gain.setValueAtTime(0.12, now + seconds - 0.3);
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.8);
+  gain.gain.setValueAtTime(0.04, now + seconds - 1);
   gain.gain.linearRampToValueAtTime(0, now + seconds);
   const filter = audio.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 1800;
+  filter.frequency.value = 900;
   filter.connect(gain).connect(audio.destination);
 
-  for (const detune of [0, 7]) {
+  for (const detune of [0, 6]) {
     const osc = audio.createOscillator();
-    osc.type = 'sawtooth';
+    osc.type = 'sine';
     osc.detune.value = detune;
-    for (let t = 0; t < seconds; t += 0.8) {
-      osc.frequency.setValueAtTime(520, now + t);
-      osc.frequency.linearRampToValueAtTime(880, now + t + 0.4);
-      osc.frequency.linearRampToValueAtTime(520, now + t + 0.8);
+    osc.frequency.setValueAtTime(380, now);
+    for (let t = 0; t < seconds; t += 1.5) {
+      osc.frequency.linearRampToValueAtTime(520, now + t + 0.75);
+      osc.frequency.linearRampToValueAtTime(380, now + t + 1.5);
     }
     osc.connect(filter);
     osc.start(now);
