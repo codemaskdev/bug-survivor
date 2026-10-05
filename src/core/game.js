@@ -71,7 +71,7 @@ export function update() {
   }
 
   game.roundTime += STEP;
-  if (!game.bossPhase && game.roundTime >= game.nextWaveAt) {
+  if (!game.calm && game.roundTime >= game.nextWaveAt) {
     spawnWave();
     game.nextWaveAt += WAVE_EVERY;
   }

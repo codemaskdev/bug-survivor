@@ -19,7 +19,8 @@ export const game = {
   cardChoice: 1,         // highlighted card (0..2)
   offer: [],             // indexes into UPGRADES of the cards on screen
   botPick: -1,           // the card the autoplay bot is going to take
-  bossPhase: false,      // true from 16:59: regular waves stop
+  bossPhase: false,      // true from 16:59: the boss fight
+  calm: false,           // true from 16:58:45: regular waves stop
 };
 
 export function resetState() {
@@ -34,5 +35,6 @@ export function resetState() {
   game.overTime = 0;
   game.hitFlash = 0;
   game.bossPhase = false;
+  game.calm = false;
   game.state = 'playing';
 }

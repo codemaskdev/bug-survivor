@@ -11,6 +11,7 @@ import { updateAttacks, drawAttacks, resetAttacks } from './attacks.js';
 // The Friday Deploy: at 16:59 (two minutes in) the waves stop, the screen
 // flashes red, a siren wails, a warning goes up and the boss walks in.
 export const BOSS_AT = 120;          // seconds into the run = FRI 16:59
+export const CALM_AT = 105;          // FRI 16:58:45: no new bugs, the calm before the storm
 const WARNING_TIME = 3;              // how long the warning stays up
 const ENTER_AT = 1.2;                // boss appears this far into the warning
 
@@ -35,6 +36,12 @@ export function findBoss() {
 
 export function updateDeploy() {
   deploy.t += STEP;
+  // The calm before the storm: from 16:58:45 no new bugs come in, so the
+  // player can clear the arena before the siren
+  if (!game.calm && game.roundTime >= CALM_AT) {
+    game.calm = true;
+    clearSpawnQueue();
+  }
   if (deploy.phase === 'waiting') {
     if (game.roundTime >= BOSS_AT) {
       deploy.phase = 'warning';
