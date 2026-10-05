@@ -5,6 +5,7 @@ import { game } from '../core/state.js';
 import { input } from '../core/input.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from './upgrades.js';
+import { chooseCard } from '../ai/bot.js';
 
 // A full XP bar pauses the game and shows three upgrade cards,
 // drawn from the pool by weight (rare cards have a small weight).
@@ -32,7 +33,7 @@ export function openUpgradeCards() {
   game.levelupTime = 0;
   game.cardChoice = 1;
   game.offer = drawOffer();
-  game.botPick = AUTOPLAY ? Math.floor(rng() * game.offer.length) : -1;
+  game.botPick = AUTOPLAY ? chooseCard(game.offer) : -1;
 }
 
 export function pickCard(i) {
