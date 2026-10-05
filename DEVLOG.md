@@ -705,3 +705,26 @@ Waves 15–20 send 20% fewer Null Pointers and Memory Leaks (wave 17: 16 → 12 
 What broke: nothing broke. The human-like fighter now reaches the boss in 12/16 runs, up from 10/16 (and 6/16 before this prompt), and wins 6. Two of its four deaths come before the softened stretch, in waves 12 and 13.
 
 Commit: `8ddeb44`
+
+## 21:16 — Coffee break
+
+> Balance problem: I can only reach the boss by running away the whole
+> time. When I actually fight, I die around wave 19, just before 16:59.
+> Fighting should be the winning strategy, not running.
+>
+> - Calm before the storm: from about 16:58:45, stop spawning new bugs,
+>   let the arena clear, then the siren at 16:59.
+> - Coffee break: when the boss appears, restore 30% of CodeMask's HP,
+>   with a little "☕ coffee break" pop-up.
+> - Soften waves 15–20 a bit, that's where I die.
+> - Reward aggression: bugs smashed by the keyboard drop extra commits.
+>
+> Goal: a player who actively fights usually reaches the boss. Test it
+> with the autoplay bot in its fighting style, not the running one.
+> Re-record the replay-check baseline after.
+
+When the boss walks in, CodeMask gets back 30% of its max HP (of the reduced max with Burnout), with a "☕ coffee break" pop-up and two soft notes.
+
+What surprised me: the four changes together made the boss a lot easier for strong players. Final numbers over 16 seeds: the human-like fighter reaches the boss in 12/16 runs (6/16 before this prompt) and wins 7 (2 before). But the plain fighter bot and the normal autoplay bot now reach the boss and win in 16/16 runs; before this prompt the normal bot won 8/16. The calm, the extra commits (more levels by 16:59), the softer waves and the heal all add up. The goal of this prompt is met, but the boss is no longer a 50/50 for the demo bot; I'm leaving that call to the user instead of quietly retuning the boss.
+
+Commit: `9f2e82e`
