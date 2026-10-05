@@ -4,8 +4,15 @@ This game is being built on camera for a YouTube video. The git history
 and DEVLOG.md are the raw material for the video script and code scenes.
 
 ## Tech
-- Plain HTML5 + Canvas + vanilla JS. No frameworks, no build step, no npm deps.
-- Must run by opening index.html in a browser.
+- Plain HTML5 + Canvas + vanilla JS ES modules. No frameworks, no build
+  step, no npm deps.
+- Run it with `npx serve` in this folder and open the printed URL
+  (ES modules don't load from file://, so opening index.html directly
+  no longer works).
+- Code lives in src/: core (loop, input, rng, state), entities (player,
+  commits, bugs/ with one file per species), weapons, upgrades, ai (the
+  autoplay bot), fx, ui, world. New bug species go in src/entities/bugs/
+  and get registered in bugs/index.js.
 - The game must stay playable after every commit.
 
 ## Commits
@@ -29,7 +36,7 @@ broke, write "nothing broke". Real failures matter, made-up ones ruin
 the video.
 
 ## Autoplay mode
-- Opening index.html?autoplay=1 starts a demo where the player moves and
-  fights by itself, for recording gameplay footage.
+- Opening index.html?autoplay=1 (via `npx serve`) starts a demo where the
+  player moves and fights by itself, for recording gameplay footage.
 - Autoplay must be deterministic: use a seeded random generator
   (seed from ?seed=..., default 1), never Math.random().
