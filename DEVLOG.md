@@ -310,3 +310,25 @@ A wave no longer dumps all its bugs at once: they trickle in, shuffled, over its
 What broke: my "human-like" tester. I gave the bot a 0.45 s reaction delay and random card picks so it died around 57 s on the old balance, like the real player. But on the new balance it still took most of its damage with only about 3 bugs nearby: the delay makes it charge blindly into bugs. So it measures clumsiness, not crowding, and never reached 2:00 in any version (median 57 s before, about 88 s after). I used crowd density instead: the player died at about 13 bugs nearby, and that now happens at the end of the second minute.
 
 Commit: `4da3a0a`
+
+## 19:43 — Burnout
+
+> New upgrade card: Burnout.
+>
+> While CodeMask moves, it leaves a trail of fire behind it. Bugs that
+> touch the fire take damage over time. Higher levels = longer, hotter
+> trail.
+>
+> The catch: every level of Burnout reduces CodeMask's max HP by 10.
+> Card text: "You're on fire. Literally." with "-10 max HP" in small
+> red text.
+>
+> Draw the fire in the game's neon pixel style (orange-red, flickering).
+> After adding it, check with the autoplay bot that the balance target
+> still holds, and re-record the replay-check baseline.
+
+Burnout drops a flickering pixel flame behind CodeMask every 0.05 s while it moves. A bug that touches one burns for 1.5 s with a little flame on its head (1.75 HP/s at level 1 up to 4.75 at level 5), and the trail lasts longer per level (1.2 s up to 2.8 s). Each level takes 10 max HP, shown as a charred segment at the end of the HP bar; the card caps at level 5 (max HP 50) through a new `maxLevel` field, because level 10 would have meant 0 max HP.
+
+What broke: the first fire was too small and faint to read as fire, so the flames went from 4 to 7 pixels tall with a stronger glow. My first card text ("…Literally. Longer, hotter trail." at higher levels) wrapped to three lines and the red "-10 max HP" landed on top of "LV 3 → 4", so the card now always says just "You're on fire. Literally.". Balance (8 seeds × 180 s): with normal picks the bot reached 2:00 in 8/8 runs and survived 3:00 in 6/8, versus 8/8 and 5/8 before. But it only took Burnout once in 8 runs, so I also forced it to always take Burnout: still 8/8 at 2:00, but only 3/8 survived 3:00, with 510 bugs smashed instead of 286. Strong, but it costs you in the long run.
+
+Commit: `cd5312a`
