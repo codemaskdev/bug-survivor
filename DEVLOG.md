@@ -659,3 +659,26 @@ From FRI 16:58:45 no new waves start and the bugs still queued from the current 
 What broke: my tester. The plain fighter bot already reached the boss in 15/16 runs, so it doesn't reproduce "I die around wave 19 when I fight". I built a test-only fighter that always engages when its swing is ready, never runs from crowds, reacts with a 0.2 s delay and picks cards at random. On the old balance it died mostly in waves 15–20 (median about 105 s) and reached the boss in 6/16 runs, which matches the report. With the calm: 9/16.
 
 Commit: `45679c6`
+
+## 21:14 — Reward aggression
+
+> Balance problem: I can only reach the boss by running away the whole
+> time. When I actually fight, I die around wave 19, just before 16:59.
+> Fighting should be the winning strategy, not running.
+>
+> - Calm before the storm: from about 16:58:45, stop spawning new bugs,
+>   let the arena clear, then the siren at 16:59.
+> - Coffee break: when the boss appears, restore 30% of CodeMask's HP,
+>   with a little "☕ coffee break" pop-up.
+> - Soften waves 15–20 a bit, that's where I die.
+> - Reward aggression: bugs smashed by the keyboard drop extra commits.
+>
+> Goal: a player who actively fights usually reaches the boss. Test it
+> with the autoplay bot in its fighting style, not the running one.
+> Re-record the replay-check baseline after.
+
+A bug killed by the keyboard now drops two commits instead of one; kills by Linter, shields, Code Review, the duck, Burnout and the Pair Programmer still drop one. Fighting up close levels you faster.
+
+What broke: nothing broke. With the human-like fighter, reaching the boss went from 9/16 to 10/16 and wins from 3 to 5.
+
+Commit: `b88b128`
