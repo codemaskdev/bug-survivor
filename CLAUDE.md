@@ -14,15 +14,19 @@ and DEVLOG.md are the raw material for the video script and code scenes.
   types: feat, fix, tweak, refactor
   Example: `fix: bugs no longer walk through walls`
 - Never squash, amend or rewrite history.
+- After each feature/fix commit, update DEVLOG.md and commit it separately
+  as `docs: devlog for <hash>`. These docs commits are ignored in the video.
 
 ## DEVLOG.md
 After each commit, append an entry:
 - Time (HH:MM)
-- What the user asked for (one line, their words)
-- What you did
+- The user's prompt, copied verbatim in full (in a quoted block)
+- What you did, in 2-3 plain sentences
 - What broke or surprised you, if anything
 - Commit hash
-Be honest about failures and retries: they are the best part of the video.
+Be honest. Never invent or exaggerate problems for drama: if nothing
+broke, write "nothing broke". Real failures matter, made-up ones ruin
+the video.
 
 ## Autoplay mode
 - Opening index.html?autoplay=1 starts a demo where the player moves and
