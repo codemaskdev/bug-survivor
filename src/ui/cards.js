@@ -4,6 +4,7 @@ import { canvas, ctx } from '../core/canvas.js';
 import { game } from '../core/state.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { pickCard } from '../upgrades/levelup.js';
+import { drawIcon } from './icons.js';
 
 // Card layout, shared by drawing and mouse clicks
 const CARD_W = 220, CARD_H = 260, CARD_GAP = 30;
@@ -89,11 +90,10 @@ export function drawUpgradeCards() {
     ctx.strokeRect(r.x + 1, y + 1, r.w - 2, r.h - 2);
     ctx.shadowBlur = 0;
 
+    drawIcon(u.key, r.x + r.w / 2, y + 60);
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '44px monospace';
-    ctx.fillStyle = '#e6ebf2';
-    ctx.fillText(u.icon, r.x + r.w / 2, y + 60);
 
     ctx.font = 'bold 17px monospace';
     ctx.fillStyle = '#00f0ff';
