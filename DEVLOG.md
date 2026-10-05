@@ -266,3 +266,26 @@ CodeMask now lives in an endless world: a camera eases after it every step so it
 What surprised me: the open world alone made the old bot survive much longer (four of five seeds lived the full 180 s), but it survives by running. On seed 2 it reached wave 15 with only 70 bugs smashed and level 3, which is dull footage. That's the next commit. In this one the bot only lost its wall logic and now wanders around CodeMask instead of around a fixed arena.
 
 Commit: `8f61cb8`
+
+## 19:25 — An autoplay bot for the open world
+
+> I played it myself and it feels cramped. Let's make the world infinite.
+>
+> - The camera follows CodeMask, who stays near the center of the screen.
+> - The world is endless: the neon grid scrolls with movement, no walls.
+> - Bugs spawn just outside the visible screen, all around, not from
+>   fixed edges.
+> - Bugs that fall far behind off-screen get despawned (or respawned
+>   closer), so the number of bugs stays under control.
+> - HUD, banners and cards stay fixed on screen.
+> - Update the autoplay bot for the open world, and make it pick cards
+>   with priorities instead of randomly, so it survives longer.
+>
+> This is an intentional behavior change: after it works, re-record the
+> replay-check baseline with --update.
+
+The bot now fights in rhythm with its keyboard: while the swing is ready (and HP is above 40) it steps in until the nearest bug is in reach, while the swing recharges it backs off, and when 6+ bugs are within 120 px it just runs. On top of that it circles the nearby swarm so it can't be boxed in, dodges dashing loops and big leaks harder, grabs commits when it's calm, and strolls when nothing is around. Cards are chosen from a priority table (git revert first, then Linter, Code Review, Unit Tests, Mechanical Keyboard, Rubber Duck, Coffee), lowered by 12 per level already owned so it builds a core and then spreads out.
+
+What surprised me: my first open-world bot circled the swarm at 150 px and barely fought (18–56 smashes in 180 s), because the keyboard only reaches about 60 px. I wrote a benchmark (time to first death and smashes, 8 seeds, 240 s) and compared versions. Before this prompt (arena, random cards) it averaged 86 s and 373 smashes, inflated by one seed that never died and made 1874; the open world with the old bot averaged 201 s but only 56 smashes, because it just ran. The final bot averages 157 s and 167 smashes. I tried five tuning variants; the HP > 40 rule was the only clear win, the rest stayed within the seed-to-seed noise.
+
+Commit: `c5c8462`
