@@ -392,3 +392,33 @@ At 16:59 the regular waves stop, the screen pulses red, a siren plays (the game'
 What broke: the first boss was almost always white, because the hit flash painted the whole page and something (shields, Linter, keyboard) hits it nearly every frame; now only the frame flashes. And my first sound module added its own keydown listener to unlock audio, which would have replaced the game's input handler inside the replay check's stub (it keeps one handler per event); caught it before running and moved the unlock into the existing input handler.
 
 Commit: `eb71929`
+
+## 19:56 — Boss attacks
+
+> Final act: the Friday Deploy boss.
+>
+> Replace the timer with an in-game clock: the run starts at FRI 16:57
+> and ends at 17:00 (3 real minutes).
+>
+> At 16:59 the arena flashes red, a siren plays, a "⚠ DEPLOYING ON FRIDAY"
+> warning appears, and the boss enters: a giant angry pixel-art calendar
+> page that says FRIDAY, neon red, matching the game's style.
+>
+> Attacks:
+> - Hotfix: releases packs of small fast bugs
+> - 500 Internal Server Error: throws red "500" blocks you have to dodge
+> - Rollback: once, when low on HP, it heals back part of its health
+>
+> Three endings:
+> - Boss defeated: "DEPLOYED TO PRODUCTION. Have a nice weekend!"
+> - CodeMask dies: "BUILD FAILED"
+> - Clock hits 17:00 with the boss alive: "WEEKEND RUINED. You're on call."
+>
+> Difficulty: a decent player should usually win on the 2nd or 3rd try.
+> In autoplay, the bot fights the boss too.
+
+The boss now attacks on a fixed rotation every 3.2 s (hotfix, 500, 500, hotfix, 500). Hotfix bursts a ring of 6 small, fast orange bugs with a white band-aid cross, which are a new bug type. 500 makes the boss shake for 0.6 s as a tell, then throw three red "500" blocks in a fan at CodeMask; they can't be destroyed, only dodged, and they hit for 15. Rollback happens once, when the boss drops to 25% HP: it's invulnerable for 2 s, a blue rewind ring closes in on it, and it heals back 40% of its max HP.
+
+What surprised me: the attacks work, but a headless run showed the autoplay bot barely fights the boss. Its HP sat at 369/400 from 16:59:10 on, because the bot treats the huge boss as danger and keeps its distance. That's for the bot step. The game also still runs past 17:00, because the endings come next.
+
+Commit: `1069779`
