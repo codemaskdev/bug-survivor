@@ -29,12 +29,13 @@ export const nullptr = {
     ctx.translate(Math.round(b.x), Math.round(b.y));
     ctx.rotate(b.angle + Math.PI / 2);
 
-    // Glitch: now and then the bug splits into a cyan ghost and jitters sideways
+    // Glitch: now and then the bug splits into a magenta ghost and jitters sideways
+    // (not cyan: that's CodeMask's color)
     if (noise < 0.12) {
       const jitter = (glitchNoise(b.id + 7, tick) - 0.5) * 6;
       ctx.globalAlpha = 0.6;
       ctx.translate(jitter, 0);
-      drawSprite(frame, GLITCH_CYAN);
+      drawSprite(frame, GLITCH_GHOST);
       ctx.translate(-jitter * 1.6, 0);
       ctx.globalAlpha = 1;
     }
@@ -72,7 +73,7 @@ const COLORS = {
   W: '#ffe3ec',
   l: '#a3133b',
 };
-const GLITCH_CYAN = { a: '#00f0ff', r: '#00f0ff', R: '#00f0ff', W: '#00f0ff', l: '#00f0ff' };
+const GLITCH_GHOST = { a: '#ff4dd8', r: '#ff4dd8', R: '#ff4dd8', W: '#ff4dd8', l: '#ff4dd8' };
 const FLASH_COLORS = { a: '#fff', r: '#fff', R: '#fff', W: '#fff', l: '#fff' };
 
 function drawSprite(frame, colors) {

@@ -1,35 +1,51 @@
-import { PIXEL, STEP, PLAYER_SPEED, PLAYER_MAX_HP } from '../config.js';
+import { STEP, PLAYER_SPEED, PLAYER_MAX_HP } from '../config.js';
 import { ctx } from '../core/canvas.js';
 import { UP } from '../upgrades/upgrades.js';
 import { swing } from '../weapons/keyboard.js';
 
 // ---------- CodeMask sprite ----------
-// O = neon outline, H = hoodie, h = hoodie fold, F = dark face.
+// Mini version of the CodeMask avatar, drawn with 2 px pixels.
+// O = bright cyan neon outline, H = black hoodie, h = hoodie fold,
+// F = dark face, s = cyan drawstring, S = drawstring tip.
 // Eyes are drawn separately so they can look where CodeMask walks.
+// Cyan is the hero's color: no bug uses it.
+const HERO_PIXEL = 2;
 const SPRITE = [
-  '...OOOOOO...',
-  '..OHHHHHHO..',
-  '.OHHHHHHHHO.',
-  '.OHFFFFFFHO.',
-  '.OHFFFFFFHO.',
-  '.OHFFFFFFHO.',
-  '.OHHFFFFHHO.',
-  'OHHHHHHHHHHO',
-  'OHhHHHHHHhHO',
-  'OHhHHHHHHhHO',
-  'OHHHHHHHHHHO',
-  '.OHHHOOHHHO.',
-  '.OOOO..OOOO.',
+  '.....OOOOOOOO.....',
+  '...OOHHHHHHHHOO...',
+  '..OHHHHHHHHHHHHO..',
+  '.OHHHFFFFFFFFHHHO.',
+  '.OHHFFFFFFFFFFHHO.',
+  '.OHFFFFFFFFFFFFHO.',
+  '.OHFFFFFFFFFFFFHO.',
+  '.OHFFFFFFFFFFFFHO.',
+  '.OHHFFFFFFFFFFHHO.',
+  '.OHHHFFFFFFFFHHHO.',
+  'OHHHHHHHHHHHHHHHHO',
+  'OHHHHsHHHHHHsHHHHO',
+  'OHhHHsHHHHHHsHHhHO',
+  'OHhHHsHHHHHHsHHhHO',
+  'OHhHHSHHHHHHSHHhHO',
+  'OHHHHHHHHHHHHHHHHO',
+  'OHHHHHHHHHHHHHHHHO',
+  '.OHHHHHOOOOHHHHHO.',
+  '.OHHHHO....OHHHHO.',
+  '.OOOOOO....OOOOOO.',
 ];
 const SPRITE_COLORS = {
-  O: '#1b3a4a',
+  O: '#00f0ff',
   H: '#0d0e12',
   h: '#1a1c24',
   F: '#050507',
+  s: '#00c8e0',
+  S: '#b8fbff',
 };
-const EYE_COLOR = '#00f0ff';
-const SPRITE_W = SPRITE[0].length * PIXEL;
-const SPRITE_H = SPRITE.length * PIXEL;
+// The avatar's eyes: wide on top, narrowing down and in (right eye mirrored)
+const EYE_L = ['####', '.###', '..##'];
+const EYE_R = ['####', '###.', '##..'];
+const EYE_COLOR = '#3cebff';
+const SPRITE_W = SPRITE[0].length * HERO_PIXEL;
+const SPRITE_H = SPRITE.length * HERO_PIXEL;
 
 // World coordinates; the world is endless and CodeMask starts at its origin
 export const player = {
@@ -84,33 +100,51 @@ export function movePlayer(input) {
 }
 
 export function drawPlayer(time) {
+  // Soft cyan glow and a pulsing ring on the ground, so CodeMask is easy to
+  // find in a crowd. Drawn even while flickering after a hit.
+  const glow = ctx.createRadialGradient(player.x, player.y, 6, player.x, player.y, 46);
+  glow.addColorStop(0, 'rgba(0, 240, 255, 0.22)');
+  glow.addColorStop(1, 'rgba(0, 240, 255, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(player.x - 46, player.y - 46, 92, 92);
+  const pulse = 0.45 + Math.sin(time * 4) * 0.15;
+  ctx.save();
+  ctx.strokeStyle = `rgba(0, 240, 255, ${pulse})`;
+  ctx.shadowColor = '#00f0ff';
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(player.x, player.y + SPRITE_H / 2 + 1, SPRITE_W / 1.7, 6, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
   // Flicker while invulnerable after a hit
   if (player.hurtTimer > 0 && Math.floor(player.hurtTimer * 20) % 2 === 0) return;
 
   // Little bounce while walking, slow breathing while idle
   const bob = player.moving
-    ? Math.round(Math.abs(Math.sin(player.walkTime * 14)) * -1) * PIXEL
+    ? Math.round(Math.abs(Math.sin(player.walkTime * 14)) * -1) * HERO_PIXEL * 1.5
     : (Math.sin(time * 2) > 0.6 ? -1 : 0);
   const left = Math.round(player.x - SPRITE_W / 2);
   const top = Math.round(player.y - SPRITE_H / 2) + bob;
 
-  // Shadow on the floor
-  ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
-  ctx.beginPath();
-  ctx.ellipse(player.x, player.y + SPRITE_H / 2 + 2, SPRITE_W / 2.2, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Body
+  // Body, with the neon outline glowing
+  ctx.save();
   for (let row = 0; row < SPRITE.length; row++) {
     for (let col = 0; col < SPRITE[row].length; col++) {
-      const c = SPRITE_COLORS[SPRITE[row][col]];
+      const ch = SPRITE[row][col];
+      const c = SPRITE_COLORS[ch];
       if (!c) continue;
+      const neon = ch === 'O' || ch === 's' || ch === 'S';
+      ctx.shadowColor = neon ? '#00f0ff' : 'transparent';
+      ctx.shadowBlur = neon ? 6 : 0;
       ctx.fillStyle = c;
-      ctx.fillRect(left + col * PIXEL, top + row * PIXEL, PIXEL, PIXEL);
+      ctx.fillRect(left + col * HERO_PIXEL, top + row * HERO_PIXEL, HERO_PIXEL, HERO_PIXEL);
     }
   }
+  ctx.restore();
 
-  // Eyes: two glowing cyan pixels that look where CodeMask walks.
+  // Eyes: glowing trapezoids that look where CodeMask walks.
   // A quick blink every few seconds.
   const blinking = (time % 4) < 0.12;
   if (blinking) return;
@@ -121,14 +155,18 @@ export function drawPlayer(time) {
     lookX = Math.abs(cx) > 0.3 ? Math.sign(cx) : 0;
     lookY = Math.abs(cy) > 0.3 ? Math.sign(cy) : 0;
   }
-  const eyeRow = 4 + Math.max(0, lookY) - Math.max(0, -lookY);
-  const eyeCols = [4 + lookX, 7 + lookX];
+  const eyeTop = 5 + lookY;
   ctx.save();
   ctx.fillStyle = EYE_COLOR;
   ctx.shadowColor = EYE_COLOR;
   ctx.shadowBlur = 10;
-  for (const col of eyeCols) {
-    ctx.fillRect(left + col * PIXEL, top + eyeRow * PIXEL, PIXEL, PIXEL);
+  for (const [eye, col0] of [[EYE_L, 4 + lookX], [EYE_R, 10 + lookX]]) {
+    for (let r = 0; r < eye.length; r++) {
+      for (let c = 0; c < eye[r].length; c++) {
+        if (eye[r][c] !== '#') continue;
+        ctx.fillRect(left + (col0 + c) * HERO_PIXEL, top + (eyeTop + r) * HERO_PIXEL, HERO_PIXEL, HERO_PIXEL);
+      }
+    }
   }
   ctx.restore();
 }
