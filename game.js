@@ -16,7 +16,6 @@ const HIT_COOLDOWN = 0.7;   // seconds of invulnerability after a hit
 
 const BUG_PIXEL = 2;
 const BUG_SPEED = 125;      // fast, but CodeMask can still outrun them
-const BUG_RADIUS = 6;
 const BUG_DAMAGE = 10;
 const FIRST_WAVE_AT = 1.5;  // seconds
 const WAVE_EVERY = 6;       // seconds between waves
@@ -168,6 +167,9 @@ function resetGame() {
   swing.timer = 0;
   swing.cooldown = 0;
   smashed = 0;
+  seenSpecies = new Set();
+  banners = [];
+  newBugs = [];
   particles = [];
   popups = [];
   shake = 0;
@@ -189,51 +191,186 @@ function resetGame() {
   state = 'playing';
 }
 
-// ---------- Null Pointer bugs ----------
-// Each wave is bigger than the last and pours in from one or two edges.
-function spawnWave() {
-  wave++;
-  const count = 4 + wave * 2;
-  const edges = [Math.floor(rng() * 4)];
-  if (wave >= 3) edges.push(Math.floor(rng() * 4));
-  for (let i = 0; i < count; i++) {
-    const edge = edges[i % edges.length];
-    const t = rng();
-    let x, y;
-    if (edge === 0) { x = t * ARENA_W; y = -10; }               // top
-    else if (edge === 1) { x = ARENA_W + 10; y = t * ARENA_H; } // right
-    else if (edge === 2) { x = t * ARENA_W; y = ARENA_H + 10; } // bottom
-    else { x = -10; y = t * ARENA_H; }                          // left
-    bugs.push({
-      id: nextBugId++,
-      x, y,
-      angle: 0,
-      speed: BUG_SPEED * (0.85 + rng() * 0.3),
-      stun: 0,
-      hp: bugHp(),
-      flash: 0,        // white flash when hit but not dead
-      swingId: -1,     // last swing that hit this bug (one hit per swing)
-    });
-  }
-}
+// ---------- Bug species ----------
+// Null Pointer: the basic swarm. Fast, fragile, crawls straight at you.
+// Memory Leak (wave 3+): slow purple blob that grows, and gains HP as it grows.
+// Infinite Loop (wave 5+): orange ring that circles you, then dashes in.
+// Merge Conflict (wave 7+): blue/yellow block that splits in two when hit.
+const SPECIES = {
+  nullptr: { name: 'NULL POINTER',   from: 1, color: '#ff2e63', tip: 'fast, weak, comes in swarms' },
+  leak:    { name: 'MEMORY LEAK',    from: 3, color: '#a855ff', tip: 'keeps growing. kill it early' },
+  loop:    { name: 'INFINITE LOOP',  from: 5, color: '#ff8c1a', tip: 'circles you, then dashes in' },
+  merge:   { name: 'MERGE CONFLICT', from: 7, color: '#3d8bff', tip: 'splits in two when hit' },
+};
+
+const LEAK_START_R = 8;
+const LEAK_MAX_R = 34;
+const LEAK_GROW = 2.2;       // px of radius per second
+const LOOP_ORBIT_R = 140;
+const LOOP_DASH_SPEED = 520;
+
+let seenSpecies = new Set();
+let banners = [];            // "NEW BUG: ..." announcements
+let newBugs = [];            // bugs born mid-update (merge splits)
 
 // Later waves are a bit tougher, so damage upgrades matter
-function bugHp() {
-  return 1 + Math.floor((wave - 1) / 4);
+function waveBonusHp() {
+  return Math.max(0, Math.floor((wave - 1) / 4));
 }
 
-// Returns true if the bug died. Dead bugs are removed by the caller.
+function leakHpForSize(r) {
+  return 1 + Math.floor((r - LEAK_START_R) / 6) + waveBonusHp();
+}
+
+function makeBug(type, x, y) {
+  const b = {
+    id: nextBugId++,
+    type,
+    x, y,
+    angle: 0,
+    stun: 0,
+    flash: 0,        // white flash when hit but not dead
+    swingId: -1,     // last swing that hit this bug (one hit per swing)
+  };
+  if (type === 'nullptr') {
+    b.r = 6;
+    b.speed = BUG_SPEED * (0.85 + rng() * 0.3);
+    b.hp = 1 + waveBonusHp();
+    b.damage = BUG_DAMAGE;
+  } else if (type === 'leak') {
+    b.r = LEAK_START_R;
+    b.speed = 42;
+    b.hp = leakHpForSize(b.r);
+    b.maxHp = b.hp;
+    b.damage = 12;
+  } else if (type === 'loop') {
+    b.r = 8;
+    b.speed = 150;
+    b.hp = 2 + waveBonusHp();
+    b.damage = 15;
+    b.phase = 'approach';    // approach -> orbit -> windup -> dash -> approach
+    b.timer = 0;
+    b.orbitDir = rng() < 0.5 ? 1 : -1;
+    b.spin = 0;
+    b.trail = [];
+  } else if (type === 'merge' || type === 'mergeOurs' || type === 'mergeTheirs') {
+    const big = type === 'merge';
+    b.r = big ? 11 : 6;
+    b.speed = big ? 70 : 115;
+    b.hp = big ? 1 : 1 + waveBonusHp();
+    b.damage = big ? 12 : 8;
+  }
+  return b;
+}
+
+function edgePoint(edge) {
+  const t = rng();
+  if (edge === 0) return { x: t * ARENA_W, y: -14 };              // top
+  if (edge === 1) return { x: ARENA_W + 14, y: t * ARENA_H };     // right
+  if (edge === 2) return { x: t * ARENA_W, y: ARENA_H + 14 };     // bottom
+  return { x: -14, y: t * ARENA_H };                              // left
+}
+
+// Each wave is bigger than the last and pours in from one or two edges.
+// New species join the mix gradually.
+function spawnWave() {
+  wave++;
+  const roster = [];
+  for (let i = 0; i < 4 + wave * 2; i++) roster.push('nullptr');
+  if (wave >= SPECIES.leak.from) for (let i = 0; i < Math.floor((wave - 1) / 2); i++) roster.push('leak');
+  if (wave >= SPECIES.loop.from) for (let i = 0; i < Math.floor((wave - 3) / 2); i++) roster.push('loop');
+  if (wave >= SPECIES.merge.from) for (let i = 0; i < Math.floor((wave - 5) / 2); i++) roster.push('merge');
+
+  const edges = [Math.floor(rng() * 4)];
+  if (wave >= 3) edges.push(Math.floor(rng() * 4));
+  roster.forEach((type, i) => {
+    const pt = edgePoint(edges[i % edges.length]);
+    bugs.push(makeBug(type, pt.x, pt.y));
+    if (!seenSpecies.has(type)) {
+      seenSpecies.add(type);
+      const sp = SPECIES[type];
+      banners.push({ text: `NEW BUG: ${sp.name}`, tip: sp.tip, color: sp.color, life: 2.8 });
+    }
+  });
+}
+
+// Returns true if the bug is gone (dead or split). The caller removes it.
 function damageBug(b, amount, fromKeyboard) {
+  // A big Merge Conflict doesn't take damage: any hit splits it into ours + theirs
+  if (b.type === 'merge') {
+    const a = Math.atan2(b.y - player.y, b.x - player.x) + Math.PI / 2;
+    for (const [type, side] of [['mergeOurs', -1], ['mergeTheirs', 1]]) {
+      const c = makeBug(type, b.x + Math.cos(a) * 9 * side, b.y + Math.sin(a) * 9 * side);
+      c.swingId = b.swingId;   // the swing that split it can't also kill the halves
+      c.stun = 0.3;
+      c.kx = Math.cos(a) * 160 * side;
+      c.ky = Math.sin(a) * 160 * side;
+      newBugs.push(c);
+    }
+    splitFx(b.x, b.y);
+    return true;
+  }
+
   b.hp -= amount;
   if (b.hp > 0) {
     b.flash = 0.1;
-    b.stun = 0.15;
+    b.stun = Math.max(b.stun, 0.15);
     return false;
   }
   smashed++;
   commits.push({ x: b.x, y: b.y, age: 0 });
-  smashFx(b.x, b.y, fromKeyboard);
+  smashFx(b.x, b.y, fromKeyboard, SPECIES[b.type === 'mergeOurs' || b.type === 'mergeTheirs' ? 'merge' : b.type].color);
   return true;
+}
+
+function flushNewBugs() {
+  if (newBugs.length) {
+    bugs.push(...newBugs);
+    newBugs = [];
+  }
+}
+
+function moveToward(b, tx, ty, speed) {
+  const dx = tx - b.x, dy = ty - b.y;
+  const d = Math.hypot(dx, dy) || 1;
+  b.x += (dx / d) * speed * STEP;
+  b.y += (dy / d) * speed * STEP;
+}
+
+function updateLoop(b, d) {
+  b.spin += (b.phase === 'windup' ? 22 : 9) * STEP;
+  b.timer -= STEP;
+  if (b.phase === 'approach') {
+    moveToward(b, player.x, player.y, b.speed);
+    if (d < LOOP_ORBIT_R + 10) {
+      b.phase = 'orbit';
+      b.timer = 1.8 + rng() * 1.8;
+    }
+  } else if (b.phase === 'orbit') {
+    // Slide around CodeMask, easing back to the orbit radius
+    const a = Math.atan2(b.y - player.y, b.x - player.x) + b.orbitDir * 1.5 * STEP;
+    const r = d + (LOOP_ORBIT_R - d) * 0.08;
+    b.x = player.x + Math.cos(a) * r;
+    b.y = player.y + Math.sin(a) * r;
+    if (b.timer <= 0) {
+      b.phase = 'windup';
+      b.timer = 0.4;
+    }
+  } else if (b.phase === 'windup') {
+    // Stops and revs up: the tell before the dash
+    if (b.timer <= 0) {
+      b.phase = 'dash';
+      b.timer = 0.5;
+      b.dashAngle = Math.atan2(player.y - b.y, player.x - b.x);
+    }
+  } else if (b.phase === 'dash') {
+    b.x += Math.cos(b.dashAngle) * LOOP_DASH_SPEED * STEP;
+    b.y += Math.sin(b.dashAngle) * LOOP_DASH_SPEED * STEP;
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 8) b.trail.shift();
+    if (b.timer <= 0) b.phase = 'approach';
+  }
+  if (b.phase !== 'dash' && b.trail.length) b.trail.shift();
 }
 
 function updateBugs() {
@@ -243,23 +380,46 @@ function updateBugs() {
     const dy = player.y - b.y;
     const d = Math.hypot(dx, dy) || 1;
     b.angle = Math.atan2(dy, dx);
+
+    // Fresh merge halves fly apart before they start chasing
+    if (b.kx) {
+      b.x += b.kx * STEP;
+      b.y += b.ky * STEP;
+      b.kx *= 0.88;
+      b.ky *= 0.88;
+      if (Math.abs(b.kx) + Math.abs(b.ky) < 5) b.kx = b.ky = 0;
+    }
+
+    if (b.type === 'leak') {
+      b.r = Math.min(LEAK_MAX_R, b.r + LEAK_GROW * STEP);
+      const maxHp = leakHpForSize(b.r);
+      if (maxHp > b.maxHp) {
+        b.hp += maxHp - b.maxHp;
+        b.maxHp = maxHp;
+      }
+    }
+
     if (b.stun > 0) {
       b.stun -= STEP;
+    } else if (b.type === 'loop') {
+      updateLoop(b, d);
     } else {
-      b.x += (dx / d) * b.speed * STEP;
-      b.y += (dy / d) * b.speed * STEP;
+      moveToward(b, player.x, player.y, b.speed);
     }
 
     // Touching CodeMask: deal damage, get knocked back
-    if (d < PLAYER_RADIUS + BUG_RADIUS) {
+    if (d < PLAYER_RADIUS + b.r) {
       if (player.hurtTimer <= 0) {
-        player.hp = Math.max(0, player.hp - BUG_DAMAGE);
+        const dmg = b.type === 'leak' ? b.damage + Math.floor((b.r - LEAK_START_R) / 4) * 2 : b.damage;
+        player.hp = Math.max(0, player.hp - dmg);
         player.hurtTimer = HIT_COOLDOWN;
         hitFlash = 1;
       }
-      b.x -= (dx / d) * 40;
-      b.y -= (dy / d) * 40;
+      const knock = b.type === 'leak' ? 12 : 40;
+      b.x -= (dx / d) * knock;
+      b.y -= (dy / d) * knock;
       b.stun = 0.25;
+      if (b.type === 'loop') b.phase = 'approach';
     }
   }
 
@@ -269,13 +429,22 @@ function updateBugs() {
       const a = bugs[i], c = bugs[j];
       const dx = c.x - a.x, dy = c.y - a.y;
       const d = Math.hypot(dx, dy);
-      const min = BUG_RADIUS * 2;
+      const min = a.r + c.r;
       if (d > 0 && d < min) {
-        const push = (min - d) / 2;
-        a.x -= (dx / d) * push; a.y -= (dy / d) * push;
-        c.x += (dx / d) * push; c.y += (dy / d) * push;
+        // Heavier (bigger) bugs get pushed less
+        const wa = c.r / min, wc = a.r / min;
+        const push = min - d;
+        a.x -= (dx / d) * push * wa; a.y -= (dy / d) * push * wa;
+        c.x += (dx / d) * push * wc; c.y += (dy / d) * push * wc;
       }
     }
+  }
+}
+
+function updateBanners() {
+  if (banners.length) {
+    banners[0].life -= STEP;
+    if (banners[0].life <= 0) banners.shift();
   }
 }
 
@@ -320,13 +489,14 @@ function updateSwing() {
     if (b.swingId === swing.id) return true;
     const dx = b.x - player.x;
     const dy = b.y - player.y;
-    const inReach = Math.hypot(dx, dy) < reach + BUG_RADIUS;
+    const inReach = Math.hypot(dx, dy) < reach + b.r;
     const inArc = Math.abs(angleDiff(Math.atan2(dy, dx), swing.angle)) < arc / 2;
     if (!inReach || !inArc) return true;
     b.swingId = swing.id;
     hits.push(b);
     return !damageBug(b, swingDamage(), true);
   });
+  flushNewBugs();
   if (hits.length === 0) return;
 
   // A mechanical keyboard is louder: bigger CLACK, more !, more shake
@@ -374,7 +544,7 @@ function updateLinter() {
     l.dist += LINT_SPEED * STEP;
     for (const b of bugs) {
       if (b.dead) continue;
-      if (Math.hypot(b.x - l.x, b.y - l.y) < BUG_RADIUS + 3) {
+      if (Math.hypot(b.x - l.x, b.y - l.y) < b.r + 3) {
         if (damageBug(b, 1, false)) b.dead = true;
         l.dist = LINT_RANGE; // shot is spent
         break;
@@ -383,6 +553,7 @@ function updateLinter() {
   }
   lints = lints.filter((l) => l.dist < LINT_RANGE);
   bugs = bugs.filter((b) => !b.dead);
+  flushNewBugs();
 }
 
 function linterInterval() {
@@ -512,9 +683,29 @@ canvas.addEventListener('click', (e) => {
   if (i >= 0) pickCard(i);
 });
 
+// Merge Conflict splitting: a burst of conflict markers
+function splitFx(x, y) {
+  shake = Math.min(8, shake + 2);
+  popups = popups.filter((p) => Math.hypot(p.x - x, p.y - (y - 16)) > 40);
+  popups.push({ x, y: y - 16, text: '<<<<<<< =======', size: 13, life: 0.6, tilt: 0, color: '#ffe14d' });
+  for (let i = 0; i < 8; i++) {
+    const a = fxRng() * Math.PI * 2;
+    const v = 60 + fxRng() * 120;
+    particles.push({
+      kind: 'bit',
+      color: i % 2 ? '#3d8bff' : '#ffe14d',
+      x, y,
+      vx: Math.cos(a) * v,
+      vy: Math.sin(a) * v,
+      rot: 0, spin: 0, letter: '',
+      life: 0.3 + fxRng() * 0.3,
+    });
+  }
+}
+
 const KEYCAP_LETTERS = 'QWERTYASDFGHZXCV{};/<>';
 
-function smashFx(x, y, fromKeyboard) {
+function smashFx(x, y, fromKeyboard, color) {
   // Keycaps pop off and tumble away (only when the keyboard did it)
   const caps = fromKeyboard ? 2 + Math.floor(fxRng() * 2) + UP.mech.level : 0;
   for (let i = 0; i < caps; i++) {
@@ -537,6 +728,7 @@ function smashFx(x, y, fromKeyboard) {
     const v = 60 + fxRng() * 140;
     particles.push({
       kind: 'bit',
+      color,
       x, y,
       vx: Math.cos(a) * v,
       vy: Math.sin(a) * v,
@@ -633,7 +825,7 @@ function readAutoplay() {
 function autoplaySwing() {
   let best = null, bestD = swingReach() * 0.9;
   for (const b of bugs) {
-    const d = Math.hypot(b.x - player.x, b.y - player.y);
+    const d = Math.hypot(b.x - player.x, b.y - player.y) - b.r;
     if (d < bestD) { best = b; bestD = d; }
   }
   if (!best || swing.cooldown > 0) return;
@@ -705,6 +897,7 @@ function update() {
   updateLinter();
   updateBugs();
   updateCommits();
+  updateBanners();
   updateFx();
 
   if (player.hp <= 0) {
@@ -853,26 +1046,178 @@ function drawLints() {
 function drawBugs(time) {
   const tick = Math.floor(time * 20);
   for (const b of bugs) {
-    const frame = BUG_FRAMES[Math.floor(time * 12 + b.id) % 2];
-    const noise = glitchNoise(b.id, tick);
-    ctx.save();
-    ctx.translate(Math.round(b.x), Math.round(b.y));
-    ctx.rotate(b.angle + Math.PI / 2);
-
-    // Glitch: now and then the bug splits into a cyan ghost and jitters sideways
-    if (noise < 0.12) {
-      const jitter = (glitchNoise(b.id + 7, tick) - 0.5) * 6;
-      ctx.globalAlpha = 0.6;
-      ctx.translate(jitter, 0);
-      drawBugSprite(frame, GLITCH_CYAN);
-      ctx.translate(-jitter * 1.6, 0);
-      ctx.globalAlpha = 1;
-    }
-    ctx.shadowColor = '#ff2e63';
-    ctx.shadowBlur = 6;
-    drawBugSprite(frame, b.flash > 0 ? BUG_FLASH_COLORS : BUG_COLORS);
-    ctx.restore();
+    if (b.type === 'nullptr') drawNullPointer(b, time, tick);
+    else if (b.type === 'leak') drawLeak(b, time);
+    else if (b.type === 'loop') drawLoop(b, time);
+    else drawMerge(b, time, tick);
   }
+}
+
+// Memory Leak: a wobbly purple pixel blob with goofy eyes, dripping as it grows
+function drawLeak(b, time) {
+  const r = b.r;
+  const P = 2;
+  const flash = b.flash > 0;
+  ctx.save();
+  ctx.translate(Math.round(b.x), Math.round(b.y));
+
+  // Soft glow behind (a gradient is much cheaper than shadowBlur per pixel)
+  const g = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 1.6);
+  g.addColorStop(0, 'rgba(168, 85, 255, 0.25)');
+  g.addColorStop(1, 'rgba(168, 85, 255, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(-r * 1.6, -r * 1.6, r * 3.2, r * 3.2);
+
+  const n = Math.ceil(r * 1.15 / P);
+  for (let gy = -n; gy <= n; gy++) {
+    for (let gx = -n; gx <= n; gx++) {
+      const x = gx * P, y = gy * P;
+      const d = Math.hypot(x, y);
+      const a = Math.atan2(y, x);
+      const edge = r * (1 + Math.sin(a * 5 + time * 3 + b.id) * 0.07 + Math.sin(a * 3 - time * 2) * 0.05);
+      if (d > edge) continue;
+      let c = '#a855ff';
+      if (d > edge - P * 1.2) c = '#4b1b8c';
+      else if (x < -r * 0.2 && y < -r * 0.2 && d < r * 0.7) c = '#d3a6ff';
+      ctx.fillStyle = flash ? '#fff' : c;
+      ctx.fillRect(x - P / 2, y - P / 2, P, P);
+    }
+  }
+
+  // Drips that fall off the bottom
+  ctx.fillStyle = flash ? '#fff' : '#a855ff';
+  for (let i = 0; i < 3; i++) {
+    const t = (time * 0.8 + i / 3 + b.id * 0.13) % 1;
+    const dx = (i - 1) * r * 0.45;
+    ctx.globalAlpha = 1 - t;
+    ctx.fillRect(Math.round(dx), Math.round(r * 0.85 + t * 10), P, P);
+  }
+  ctx.globalAlpha = 1;
+
+  // Eyes look at CodeMask
+  const e = Math.max(2, Math.round(r / 6)) * 2 / 2;
+  const lx = Math.cos(b.angle) * e * 0.5, ly = Math.sin(b.angle) * e * 0.5;
+  for (const side of [-1, 1]) {
+    const ex = Math.round(side * r * 0.32 - e / 2), ey = Math.round(-r * 0.15 - e / 2);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(ex, ey, e + 2, e + 2);
+    ctx.fillStyle = '#1a0533';
+    ctx.fillRect(Math.round(ex + 1 + lx * 0.6), Math.round(ey + 1 + ly * 0.6), Math.max(2, e / 1.5), Math.max(2, e / 1.5));
+  }
+  ctx.restore();
+}
+
+// Infinite Loop: a spinning orange ↻ ring. Flashes white right before it dashes.
+function drawLoop(b, time) {
+  ctx.save();
+  // Dash trail
+  for (let i = 0; i < b.trail.length; i++) {
+    const t = b.trail[i];
+    ctx.globalAlpha = (i + 1) / b.trail.length * 0.35;
+    ctx.fillStyle = '#ff8c1a';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, b.r * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.translate(Math.round(b.x), Math.round(b.y));
+  const winding = b.phase === 'windup';
+  const blink = winding && Math.floor(time * 20) % 2 === 0;
+  const color = b.flash > 0 || blink ? '#ffffff' : '#ff8c1a';
+  const r = b.r * (winding ? 1.2 : 1);
+  ctx.rotate(b.spin * b.orbitDir);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.shadowColor = '#ff8c1a';
+  ctx.shadowBlur = winding ? 16 : 8;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 1.55);
+  ctx.stroke();
+  // Arrowhead at the end of the ring
+  const ax = Math.cos(Math.PI * 1.55) * r, ay = Math.sin(Math.PI * 1.55) * r;
+  ctx.beginPath();
+  ctx.moveTo(ax - 4, ay - 1);
+  ctx.lineTo(ax + 4, ay - 1);
+  ctx.lineTo(ax, ay + 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(-1, -1, 3, 3);
+  ctx.restore();
+}
+
+// Draws a pixel chevron: dir -1 = "<", 1 = ">"
+function drawChevron(cx, cy, dir, P) {
+  for (let i = -2; i <= 2; i++) {
+    const x = cx + dir * (2 - Math.abs(i)) * P - P / 2;
+    ctx.fillRect(Math.round(x), Math.round(cy + i * P - P / 2), P, P);
+  }
+}
+
+// Merge Conflict: a blue "ours" half and a yellow "theirs" half that don't line up.
+// When hit it splits into a small blue "<" and a small yellow ">".
+function drawMerge(b, time, tick) {
+  const flash = b.flash > 0;
+  const BLUE = flash ? '#fff' : '#3d8bff';
+  const YELLOW = flash ? '#fff' : '#ffe14d';
+  const DARK = '#0b0d13';
+  ctx.save();
+  ctx.translate(Math.round(b.x), Math.round(b.y));
+  ctx.shadowColor = '#3d8bff';
+  ctx.shadowBlur = 8;
+
+  if (b.type === 'merge') {
+    const h = 22, w = 11;
+    // The two halves keep slipping out of alignment, like a bad merge
+    const slip = Math.round(Math.sin(time * 6 + b.id) * 1.5 + (glitchNoise(b.id, tick) < 0.15 ? 3 : 0));
+    ctx.fillStyle = DARK;
+    ctx.fillRect(-w - 1, -h / 2 - 1 - slip, w + 1, h + 2);
+    ctx.fillRect(1, -h / 2 - 1 + slip, w + 1, h + 2);
+    ctx.fillStyle = BLUE;
+    ctx.fillRect(-w, -h / 2 - slip, w - 1, h);
+    ctx.fillStyle = YELLOW;
+    ctx.fillRect(2, -h / 2 + slip, w - 1, h);
+    ctx.shadowBlur = 0;
+    // "=======" seam
+    ctx.fillStyle = '#ffffff';
+    for (let y = -h / 2; y < h / 2; y += 4) ctx.fillRect(0, y, 1, 2);
+    ctx.fillStyle = DARK;
+    drawChevron(-w / 2 - 1, -slip, -1, 2);
+    drawChevron(w / 2 + 1, slip, 1, 2);
+  } else {
+    const ours = b.type === 'mergeOurs';
+    ctx.fillStyle = DARK;
+    ctx.fillRect(-7, -7, 14, 14);
+    ctx.fillStyle = ours ? BLUE : YELLOW;
+    ctx.fillRect(-6, -6, 12, 12);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = DARK;
+    drawChevron(0, 0, ours ? -1 : 1, 2);
+  }
+  ctx.restore();
+}
+
+function drawNullPointer(b, time, tick) {
+  const frame = BUG_FRAMES[Math.floor(time * 12 + b.id) % 2];
+  const noise = glitchNoise(b.id, tick);
+  ctx.save();
+  ctx.translate(Math.round(b.x), Math.round(b.y));
+  ctx.rotate(b.angle + Math.PI / 2);
+
+  // Glitch: now and then the bug splits into a cyan ghost and jitters sideways
+  if (noise < 0.12) {
+    const jitter = (glitchNoise(b.id + 7, tick) - 0.5) * 6;
+    ctx.globalAlpha = 0.6;
+    ctx.translate(jitter, 0);
+    drawBugSprite(frame, GLITCH_CYAN);
+    ctx.translate(-jitter * 1.6, 0);
+    ctx.globalAlpha = 1;
+  }
+  ctx.shadowColor = '#ff2e63';
+  ctx.shadowBlur = 6;
+  drawBugSprite(frame, b.flash > 0 ? BUG_FLASH_COLORS : BUG_COLORS);
+  ctx.restore();
 }
 
 function drawPlayer(time) {
@@ -979,7 +1324,7 @@ function drawFx() {
       ctx.textBaseline = 'middle';
       ctx.fillText(p.letter, 0, -1.5);
     } else {
-      ctx.fillStyle = '#ff2e63';
+      ctx.fillStyle = p.color;
       ctx.fillRect(-1, -1, 2, 2);
     }
     ctx.restore();
@@ -999,8 +1344,8 @@ function drawFx() {
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#05060a';
     ctx.strokeText(p.text, 0, 0);
-    ctx.fillStyle = '#fff36b';
-    ctx.shadowColor = '#fff36b';
+    ctx.fillStyle = p.color || '#fff36b';
+    ctx.shadowColor = ctx.fillStyle;
     ctx.shadowBlur = 10;
     ctx.fillText(p.text, 0, 0);
     ctx.restore();
@@ -1144,6 +1489,40 @@ function drawUpgradeCards() {
   ctx.restore();
 }
 
+// "NEW BUG: ..." banner, slides in with a glitch, in the species' color
+function drawBanner() {
+  const b = banners[0];
+  if (!b) return;
+  const age = 2.8 - b.life;
+  const inT = Math.min(1, age / 0.25);
+  const alpha = Math.min(1, b.life / 0.4) * inT;
+  const y = 130;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = 'rgba(5, 6, 10, 0.7)';
+  ctx.fillRect(0, y - 34, ARENA_W, 68);
+  ctx.fillStyle = b.color;
+  ctx.fillRect(0, y - 34, ARENA_W, 2);
+  ctx.fillRect(0, y + 32, ARENA_W, 2);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 30px monospace';
+  const x = ARENA_W / 2 + (1 - inT) * -120;
+  const j = glitchNoise(3, Math.floor(age * 15)) < 0.3 ? (glitchNoise(4, Math.floor(age * 15)) - 0.5) * 10 : 0;
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+  ctx.fillText(b.text, x + j, y - 6);
+  ctx.fillStyle = b.color;
+  ctx.shadowColor = b.color;
+  ctx.shadowBlur = 16;
+  ctx.fillText(b.text, x, y - 6);
+  ctx.shadowBlur = 0;
+  ctx.font = '13px monospace';
+  ctx.fillStyle = 'rgba(230, 235, 242, 0.85)';
+  ctx.fillText(b.tip, x, y + 18);
+  ctx.restore();
+}
+
 function drawGameOver() {
   ctx.fillStyle = `rgba(5, 6, 10, ${Math.min(0.75, overTime * 2)})`;
   ctx.fillRect(0, 0, ARENA_W, ARENA_H);
@@ -1197,6 +1576,7 @@ function frame(now) {
   drawFx();
   ctx.restore();
   drawHud();
+  drawBanner();
   if (state === 'levelup') drawUpgradeCards();
   if (state === 'over') drawGameOver();
   requestAnimationFrame(frame);
