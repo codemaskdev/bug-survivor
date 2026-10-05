@@ -50,3 +50,24 @@ Space or J swings a little pixel keyboard through a 135° arc in the direction C
 What surprised me: the browser tab was in the background this time, so `requestAnimationFrame` stopped and real key presses never reached the page. I tested by stepping `update()` by hand and firing synthetic key events instead. Space was also the restart key, so holding it while dying would skip BUILD FAILED; restart is now R or Enter only. The bot went from dying in wave 2 to surviving 90 s with 254 bugs smashed — bugs still pile up faster than it kills them, though.
 
 Commit: `03a5827`
+
+## 18:27 — Commits, XP and upgrade cards
+
+> Smashed bugs should drop commits — small glowing green dots that
+> CodeMask picks up by walking near them. Commits are XP.
+>
+> When the XP bar fills, pause the game and show 3 upgrade cards to
+> choose from. Start with these upgrades:
+>
+> - Linter: auto-fires a shot at the nearest bug every second
+> - Mechanical Keyboard: bigger swing arc, more damage, louder CLACK
+> - Coffee: CodeMask moves faster
+>
+> Each upgrade can be picked again to level it up. Show the current
+> level on the card. In autoplay, the bot picks a card on its own.
+
+Every dead bug drops a glowing green commit that drifts toward CodeMask when it gets close; a green XP bar runs along the bottom, and each level needs 4 more commits than the last. A full bar pauses the game and shows three cards with their level ("NEW" or "LV 2 → 3"): Linter fires yellow squiggle shots at the nearest bug (20% faster per level), Mechanical Keyboard adds +30° arc, more reach, +1 damage and a bigger "CLACK!!!", Coffee adds +15% speed. "More damage" needed something to hit, so bugs now get 1 extra HP every 4 waves and flash white when hit but not killed; in autoplay the bot walks to nearby commits, highlights a seeded-random card, then takes it after a beat.
+
+What surprised me: at Mechanical Keyboard 3 the "louder CLACK" was too loud — three overlapping 33px "CLACK!!!!" pop-ups and 12px shake made the screen unreadable, so the newest CLACK now replaces older ones nearby and size/shake are capped. One test said "linter kill dropped no commit"; turned out my synthetic ArrowRight was never released, so CodeMask had walked over and already picked it up. Headless check: 90 s of seed 1 is still identical run to run (9 level-ups, wave 13, no deaths).
+
+Commit: `6ddd65a`
