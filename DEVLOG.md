@@ -180,3 +180,24 @@ Right after the previous commit, the replay check's readable summary was missing
 What broke: only the summary text was wrong; the hashes were never affected, so no check gave a wrong pass or fail.
 
 Commit: `a8dfe27`
+
+## 18:57 — Code Review pulse
+
+> More upgrades for the card pool:
+>
+> - Unit Tests: shields orbiting CodeMask that smash bugs on contact.
+>   More levels = more shields.
+> - Code Review: every few seconds, a pulse wave around CodeMask that
+>   damages and pushes back all nearby bugs.
+> - Rubber Duck: a little duck companion that follows CodeMask and pecks
+>   the nearest bug. Squeaks when it hits.
+> - git revert: every 30 seconds, wipes all bugs on screen. Rare card.
+>
+> Also replace the emoji icons on all cards with small pixel-art icons
+> drawn in code, matching the game's neon style.
+
+Code Review sends a blue ring rolling out from CodeMask every 4 s (0.5 s faster per level, down to 1.5 s); every bug it reaches takes damage and gets shoved outward, harder the closer it was, using the same fly-apart push the Merge Conflict halves already had. The reach grows from 110 px by 15 px a level, and every third level adds a point of damage.
+
+What broke: nothing broke. All three autoplay seeds survive the full 90 s again, including seed 1, which picked Code Review up to level 3.
+
+Commit: `d14795f`
