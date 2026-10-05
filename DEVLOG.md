@@ -128,3 +128,24 @@ Commit: `ec06efc`
 What broke: nothing broke. The freshly recorded golden hashes are identical to the ones I recorded before the refactor, and a one-digit tweak to the screen shake made all four scenarios fail even though the HUD numbers stayed the same.
 
 Commit: `ef0451b`
+
+## 18:52 — Pixel-art card icons
+
+> More upgrades for the card pool:
+>
+> - Unit Tests: shields orbiting CodeMask that smash bugs on contact.
+>   More levels = more shields.
+> - Code Review: every few seconds, a pulse wave around CodeMask that
+>   damages and pushes back all nearby bugs.
+> - Rubber Duck: a little duck companion that follows CodeMask and pecks
+>   the nearest bug. Squeaks when it hits.
+> - git revert: every 30 seconds, wipes all bugs on screen. Rare card.
+>
+> Also replace the emoji icons on all cards with small pixel-art icons
+> drawn in code, matching the game's neon style.
+
+First step of this prompt (the new upgrades follow in their own commits): the ⚠ ⌨ ☕ emoji on the cards are now 16×16 pixel-art icons drawn from string maps in src/ui/icons.js, each pixel with a soft glow in its own color: a yellow warning sign, a cyan-framed keyboard and a steaming mug. Emoji looked different on every OS; these look the same everywhere.
+
+What broke: nothing broke. The replay check showed exactly what I expected: all four scenarios changed hash, but every HUD number stayed identical and only the canvas call count grew (the icons are drawn pixel by pixel), so I re-recorded the golden file in the same commit.
+
+Commit: `5af2401`
