@@ -187,6 +187,6 @@ async function runScenario(name, entry) {
     hash: hex(h1) + hex(h2),
     canvasCalls: calls,
     // HP, wave, smashed, level/XP and the owned-upgrades line ("LINTER 3  ·  MECH 5")
-    hud: lastTexts.filter((t) => /HP|WAVE|SMASHED|LVL/.test(t) || /^[A-Z]+ \d+( {2}· [A-Z]+ \d+)*$/.test(t)),
+    hud: lastTexts.filter((t) => /HP|WAVE|SMASHED|LVL/.test(t) || /^[A-Z]+ \d+( {2}· {2}[A-Z]+ \d+)*$/.test(t)),
   }));
 }
