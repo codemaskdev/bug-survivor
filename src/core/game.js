@@ -11,7 +11,7 @@ import { updateLinter, resetLinter } from '../weapons/linter.js';
 import { updateTests, resetTests } from '../weapons/unittests.js';
 import { updateReview, resetReview } from '../weapons/review.js';
 import { updateDuck, resetDuck } from '../weapons/duck.js';
-import { updateRevert, resetRevert } from '../weapons/revert.js';
+import { updateRevert, resetRevert, fadeRevertFlash } from '../weapons/revert.js';
 import { updateBurnout, resetBurnout } from '../weapons/burnout.js';
 import { resetUpgrades } from '../upgrades/upgrades.js';
 import { updateLevelup } from '../upgrades/levelup.js';
@@ -45,6 +45,7 @@ export function resetGame() {
 
 // One fixed simulation step
 export function update() {
+  fadeRevertFlash();
   // Any ending: BUILD FAILED, DEPLOYED TO PRODUCTION or WEEKEND RUINED
   if (isEnded(game.state)) {
     game.overTime += STEP;

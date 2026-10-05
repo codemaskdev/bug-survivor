@@ -45,8 +45,13 @@ function wipe() {
   addPopup({ x: camera.x, y: camera.y, text: '$ git revert HEAD', size: 26, life: 0.7, tilt: 0, color: '#f05033' }, 9999);
 }
 
-export function updateRevert() {
+// The flash is pure decoration, so it fades every step whatever the game is
+// doing; otherwise it would freeze on screen under the level-up cards
+export function fadeRevertFlash() {
   if (revert.flash > 0) revert.flash -= STEP;
+}
+
+export function updateRevert() {
   if (UP.revert.level === 0) return;
   if (!revert.wasActive) {
     revert.wasActive = true;

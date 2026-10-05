@@ -80,7 +80,8 @@ export function drawDeployWorld() {
 
 // Red alarm flash + "⚠ DEPLOYING ON FRIDAY" (screen coordinates)
 export function drawDeployWarning() {
-  if (deploy.phase !== 'warning') return;
+  // Its timer only runs while playing, so don't leave it frozen under the cards
+  if (deploy.phase !== 'warning' || game.state !== 'playing') return;
   const t = deploy.t;
   const pulse = (Math.sin(t * Math.PI * 4) + 1) / 2;   // two pulses a second
   const fade = Math.min(1, (WARNING_TIME - t) / 0.4);
