@@ -548,3 +548,36 @@ Item 4: the siren is now two slightly detuned sine waves gliding slowly between 
 What broke: nothing broke. Sound isn't drawn, so the replay check passed without re-recording.
 
 Commit: `fce8fe8`
+
+## 20:29 — Sound
+
+> Polish pass:
+>
+> 1. Sound. Synthesize everything with Web Audio, no files: keyboard
+>    CLACK, bug squish, commit pickup, level-up chime, card select,
+>    Linter zap, duck squeak, Burnout crackle, git revert whoosh, boss
+>    hits, Rollback, and a short jingle for each of the three endings.
+>    Keep it punchy and not too loud. M toggles mute, show it in the HUD.
+>
+> 2. Mini-CodeMask is too dim and gets lost among colorful bugs. Make
+>    him instantly findable, matching my big avatar's style:
+>    - bright cyan neon outline around the black hoodie
+>    - two cyan hoodie drawstrings
+>    - bigger eyes: small pixel-art trapezoids like my avatar's, glowing
+>    - a soft cyan glow and a ground ring under him
+>    Cyan is the hero's color: make sure no bug uses it as a main color.
+>
+> 3. Bug: if a git revert flash coincides with a level-up, the red flash
+>    freezes under the cards. Fix it.
+>
+> 4. The boss siren is too harsh and startling, especially in
+>    headphones. Make it softer: lower volume, smoother tone, gentle
+>    fade in and out. Tense, not scary.
+>
+> Re-record the replay-check baseline after.
+
+Item 1: every sound is synthesized in src/fx/sound.js from oscillators and seeded noise: CLACK (heavier and louder with Mechanical Keyboard), squish, commit blip, level-up arpeggio, card select, Linter zap, duck squeak, Burnout crackle, git revert whoosh, boss thud, a wobbly Rollback sweep, and three ending jingles (fanfare, sad trombone, on-call pager). Everything goes through one master volume at 0.5; M mutes it (remembered in the browser) and the HUD shows "♪ SOUND ON [M]" or "♪ MUTED [M]". Frequent sounds are rate-limited so a dying swarm doesn't turn into static.
+
+What broke: when I measured every sound offline, the BUILD FAILED and WEEKEND RUINED jingles peaked at 0.024 and 0.025, five times quieter than the win fanfare (0.124), so they were raised to 0.098 and 0.059. Nothing peaks above 0.17.
+
+Commit: `9e6a68e`
