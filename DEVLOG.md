@@ -482,3 +482,36 @@ The bot now fights the boss: it closes to keyboard range when its swing is ready
 What broke: a lot, one step at a time (16 seeds each). First version: 0 wins, the bot was in swing range of the boss only 1–13% of the fight. Pulling it harder toward the boss: still 0 wins. It turned out the Hotfix packs made it count as "surrounded" almost all fight, and every hit stunned the boss for 0.15 s, so shields, Linter and duck kept it frozen in place. Fixing both: 0 wins and 11 deaths. Boss HP 220 and softer hits: 1 win, 9 deaths. Measuring that version showed 48–84 of the damage the bot took per fight came from 500 blocks. At the old spread the three blocks left about 5 px gaps, a wall nobody could slip through, and the hitbox was 8–10 px bigger than the drawing. Making them dodgeable: 6 wins. Boss HP 210 gave 8 (200 gave 9). I aimed for about 50% for the bot, because a human probably dodges worse than it does but learns the pattern by try 2–3. That's a judgment call, not a measurement of humans.
 
 Commit: `9483e3c`
+
+## 20:24 — Fix: frozen red flash under the cards
+
+> Polish pass:
+>
+> 1. Sound. Synthesize everything with Web Audio, no files: keyboard
+>    CLACK, bug squish, commit pickup, level-up chime, card select,
+>    Linter zap, duck squeak, Burnout crackle, git revert whoosh, boss
+>    hits, Rollback, and a short jingle for each of the three endings.
+>    Keep it punchy and not too loud. M toggles mute, show it in the HUD.
+>
+> 2. Mini-CodeMask is too dim and gets lost among colorful bugs. Make
+>    him instantly findable, matching my big avatar's style:
+>    - bright cyan neon outline around the black hoodie
+>    - two cyan hoodie drawstrings
+>    - bigger eyes: small pixel-art trapezoids like my avatar's, glowing
+>    - a soft cyan glow and a ground ring under him
+>    Cyan is the hero's color: make sure no bug uses it as a main color.
+>
+> 3. Bug: if a git revert flash coincides with a level-up, the red flash
+>    freezes under the cards. Fix it.
+>
+> 4. The boss siren is too harsh and startling, especially in
+>    headphones. Make it softer: lower volume, smoother tone, gentle
+>    fade in and out. Tense, not scary.
+>
+> Re-record the replay-check baseline after.
+
+Item 3 first. The git revert flash only faded during play, so a level-up in the same moment froze it under the cards; now it fades every step, whatever the game is doing. The "⚠ DEPLOYING ON FRIDAY" warning had the same problem (its timer is part of the boss timeline, which rightly pauses), so it now simply isn't drawn while the cards are up.
+
+What broke: nothing broke. A headless test that opens the cards right after a revert shows the flash for 120 of 120 frames on the old code and for 35 (its normal 0.6 s) on the new code.
+
+Commit: `686c5d8`
