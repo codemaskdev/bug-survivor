@@ -94,3 +94,24 @@ What surprised me: not much broke this time. The one real find was from a headle
 _Correction (added after commit `3d46a57`): the first version of this entry described the Merge Conflict split issue as something that broke. It didn't. I prevented it before testing._
 
 Commit: `68f3d5c`
+
+## 18:45 — Refactor: game.js → ES modules
+
+> Before we add anything else, let's pay off some tech debt. game.js is
+> getting too big to maintain.
+>
+> Refactor it into ES modules with a clear folder structure, for example:
+> src/core (loop, input, rng), src/entities (player, bugs), src/weapons,
+> src/upgrades, src/ui (hud, cards, screens), src/fx (particles, shake).
+> Each bug type should live in its own file so new species are easy to add.
+>
+> This is a pure refactor: no behavior changes. Before you start, record
+> the autoplay result for seed 1 over 90 seconds. After the refactor it
+> must match exactly. Update CLAUDE.md: the game now runs via `npx serve`
+> instead of opening index.html directly.
+
+Split the 1584-line game.js into 29 modules under src/ (core, entities with one file per bug species plus a registry, weapons, upgrades, ai, fx, ui, world); CLAUDE.md now says to run it with `npx serve`. Before touching anything I recorded a black-box baseline: the real game loop driven for 90 s with stubbed browser APIs, hashing every one of the 15.7 million canvas calls. Seed 1 ended at wave 13, HP 90, 276 smashed, LVL 11, Linter 3 / Mech Keyboard 5 / Coffee 2 (hash `01ff46247ebfda84`), plus seeds 2 and 7 and a scripted keyboard-and-mouse run.
+
+What broke: nothing broke. All four runs matched the baseline hash on the first try, and a deliberate one-character change to the shake decay did change the hash, so the check works. One scare: a browser check showed 278 smashed instead of 276, but the same mismatch happened with the old game.js. My test had let a couple of frames run before it started counting. With both versions started the same way, Chrome gave identical results.
+
+Commit: `ec06efc`
