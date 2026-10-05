@@ -130,6 +130,8 @@ export function damageBug(b, amount, fromKeyboard) {
   game.smashed++;
   sfxSquish();
   dropCommit(b.x, b.y);
+  // Reward aggression: a bug smashed by the keyboard drops an extra commit
+  if (fromKeyboard) dropCommit(b.x + 6, b.y - 4);
   smashFx(b.x, b.y, fromKeyboard, sp.color);
   return true;
 }
