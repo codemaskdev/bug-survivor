@@ -112,6 +112,6 @@ Commit: `68f3d5c`
 
 Split the 1584-line game.js into 29 modules under src/ (core, entities with one file per bug species plus a registry, weapons, upgrades, ai, fx, ui, world); CLAUDE.md now says to run it with `npx serve`. Before touching anything I recorded a black-box baseline: the real game loop driven for 90 s with stubbed browser APIs, hashing every one of the 15.7 million canvas calls. Seed 1 ended at wave 13, HP 90, 276 smashed, LVL 11, Linter 3 / Mech Keyboard 5 / Coffee 2 (hash `01ff46247ebfda84`), plus seeds 2 and 7 and a scripted keyboard-and-mouse run.
 
-What broke: nothing broke. All four runs matched the baseline hash on the first try, and a deliberate one-character change to the shake decay did change the hash, so the check works. One scare: a browser check showed 278 smashed instead of 276, but the same mismatch happened with the old game.js. My test had let a couple of frames run before it started counting. With both versions started the same way, Chrome gave identical results.
+What broke: nothing broke. All four runs matched the baseline hash on the first try, and a deliberate one-character change to the shake decay did change the hash, so the check works. One scare: a browser check showed 278 smashed instead of 276, but the old game.js was off too (285) when checked the same way. My test had let a few frames run before it started counting. With both versions started the same way, Chrome gave identical results.
 
 Commit: `ec06efc`
