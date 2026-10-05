@@ -20,7 +20,7 @@ import { shake } from '../fx/shake.js';
 import { drawHud } from '../ui/hud.js';
 import { drawBanner } from '../ui/banner.js';
 import { drawUpgradeCards } from '../ui/cards.js';
-import { drawGameOver } from '../ui/screens.js';
+import { drawEnding, isEnded } from '../ui/screens.js';
 
 // Fixed-step simulation, drawn once per animation frame
 let simTime = 0;
@@ -71,7 +71,7 @@ function frame(now) {
   drawBossBar();
   drawBanner();
   if (game.state === 'levelup') drawUpgradeCards();
-  if (game.state === 'over') drawGameOver();
+  if (isEnded(game.state)) drawEnding();
   requestAnimationFrame(frame);
 }
 

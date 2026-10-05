@@ -20,6 +20,8 @@ import { updateFx, resetFx } from '../fx/particles.js';
 import { resetShake } from '../fx/shake.js';
 import { updateBanners, resetBanners } from '../ui/banner.js';
 import { updateDeploy, resetDeploy } from '../boss/deploy.js';
+import { RUN_SECONDS } from './clock.js';
+import { isEnded } from '../ui/screens.js';
 
 export function resetGame() {
   resetPlayer();
@@ -43,7 +45,8 @@ export function resetGame() {
 
 // One fixed simulation step
 export function update() {
-  if (game.state === 'over') {
+  // Any ending: BUILD FAILED, DEPLOYED TO PRODUCTION or WEEKEND RUINED
+  if (isEnded(game.state)) {
     game.overTime += STEP;
     // Autoplay keeps the demo rolling for recording
     if (AUTOPLAY && game.overTime > 3) resetGame();
@@ -93,6 +96,10 @@ export function update() {
 
   if (player.hp <= 0) {
     game.state = 'over';
+  } else if (game.state === 'playing' && game.roundTime >= RUN_SECONDS) {
+    game.state = 'timeout';    // 17:00 and the boss is still up
+  }
+  if (isEnded(game.state)) {
     game.overTime = 0;
     player.hurtTimer = 0;
   }

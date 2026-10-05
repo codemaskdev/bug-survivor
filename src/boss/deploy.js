@@ -4,6 +4,7 @@ import { game } from '../core/state.js';
 import { camera } from '../core/camera.js';
 import { playSiren } from '../fx/sound.js';
 import { shake } from '../fx/shake.js';
+import { smashFx, addPopup } from '../fx/particles.js';
 import { makeBug, clearSpawnQueue } from '../entities/bugs/index.js';
 import { updateAttacks, drawAttacks, resetAttacks } from './attacks.js';
 
@@ -17,6 +18,8 @@ const deploy = {
   phase: 'waiting',  // waiting -> warning -> fight
   t: 0,              // seconds in the current phase
   entered: false,    // the boss has been spawned
+  lastX: 0,          // where the boss was last seen (for its death burst)
+  lastY: 0,
 };
 
 export function resetDeploy() {
@@ -52,7 +55,22 @@ export function updateDeploy() {
       deploy.t = 0;
     }
   }
-  if (deploy.entered) updateAttacks(findBoss());
+  if (!deploy.entered) return;
+  const boss = findBoss();
+  if (boss) {
+    deploy.lastX = boss.x;
+    deploy.lastY = boss.y;
+  }
+  updateAttacks(boss);
+  if (!boss && game.state === 'playing') {
+    // Boss down: it goes out in a burst of green, then the good ending
+    for (let i = 0; i < 12; i++) {
+      smashFx(deploy.lastX + Math.cos(i) * 30, deploy.lastY + Math.sin(i * 1.7) * 30, false, i % 2 ? '#39ff88' : '#ff2e3e');
+    }
+    addPopup({ x: deploy.lastX, y: deploy.lastY - 40, text: 'MERGED ✓', size: 28, life: 0.7, tilt: 0, color: '#39ff88' }, 80);
+    shake.amount = 10;
+    game.state = 'won';
+  }
 }
 
 // Boss attacks in world coordinates (500 blocks, rollback ring)
