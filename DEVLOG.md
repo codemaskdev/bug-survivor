@@ -422,3 +422,33 @@ The boss now attacks on a fixed rotation every 3.2 s (hotfix, 500, 500, hotfix, 
 What surprised me: the attacks work, but a headless run showed the autoplay bot barely fights the boss. Its HP sat at 369/400 from 16:59:10 on, because the bot treats the huge boss as danger and keeps its distance. That's for the bot step. The game also still runs past 17:00, because the endings come next.
 
 Commit: `1069779`
+
+## 19:58 — Three endings
+
+> Final act: the Friday Deploy boss.
+>
+> Replace the timer with an in-game clock: the run starts at FRI 16:57
+> and ends at 17:00 (3 real minutes).
+>
+> At 16:59 the arena flashes red, a siren plays, a "⚠ DEPLOYING ON FRIDAY"
+> warning appears, and the boss enters: a giant angry pixel-art calendar
+> page that says FRIDAY, neon red, matching the game's style.
+>
+> Attacks:
+> - Hotfix: releases packs of small fast bugs
+> - 500 Internal Server Error: throws red "500" blocks you have to dodge
+> - Rollback: once, when low on HP, it heals back part of its health
+>
+> Three endings:
+> - Boss defeated: "DEPLOYED TO PRODUCTION. Have a nice weekend!"
+> - CodeMask dies: "BUILD FAILED"
+> - Clock hits 17:00 with the boss alive: "WEEKEND RUINED. You're on call."
+>
+> Difficulty: a decent player should usually win on the 2nd or 3rd try.
+> In autoplay, the bot fights the boss too.
+
+The BUILD FAILED screen became one ending screen with three versions. Killing the boss bursts it into green and red bits with "MERGED ✓" and shows a green "DEPLOYED TO PRODUCTION. Have a nice weekend!" with the time you shipped. Dying is still "BUILD FAILED". Reaching 17:00:00 with the boss alive shows an orange "WEEKEND RUINED. You're on call." The clock stops on every ending; R restarts, and autoplay restarts by itself after 3 s.
+
+What broke: nothing broke. I tested the win path by forcing the boss to 24% HP: Rollback kicked in and healed it to 257/400, and then at 1 HP it still took the bot about 40 s to land a hit, which confirms the bot is avoiding the boss.
+
+Commit: `50d046e`
