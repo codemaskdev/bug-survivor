@@ -682,3 +682,26 @@ A bug killed by the keyboard now drops two commits instead of one; kills by Lint
 What broke: nothing broke. With the human-like fighter, reaching the boss went from 9/16 to 10/16 and wins from 3 to 5.
 
 Commit: `b88b128`
+
+## 21:15 — Softer waves 15–20
+
+> Balance problem: I can only reach the boss by running away the whole
+> time. When I actually fight, I die around wave 19, just before 16:59.
+> Fighting should be the winning strategy, not running.
+>
+> - Calm before the storm: from about 16:58:45, stop spawning new bugs,
+>   let the arena clear, then the siren at 16:59.
+> - Coffee break: when the boss appears, restore 30% of CodeMask's HP,
+>   with a little "☕ coffee break" pop-up.
+> - Soften waves 15–20 a bit, that's where I die.
+> - Reward aggression: bugs smashed by the keyboard drop extra commits.
+>
+> Goal: a player who actively fights usually reaches the boss. Test it
+> with the autoplay bot in its fighting style, not the running one.
+> Re-record the replay-check baseline after.
+
+Waves 15–20 send 20% fewer Null Pointers and Memory Leaks (wave 17: 16 → 12 Null Pointers, 3 → 2 leaks), and bugs in those waves get at most +1 HP instead of +2. With the calm, only waves 15–18 actually happen.
+
+What broke: nothing broke. The human-like fighter now reaches the boss in 12/16 runs, up from 10/16 (and 6/16 before this prompt), and wins 6. Two of its four deaths come before the softened stretch, in waves 12 and 13.
+
+Commit: `8ddeb44`
