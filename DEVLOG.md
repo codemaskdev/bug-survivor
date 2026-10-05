@@ -614,3 +614,25 @@ Item 2: Mini-CodeMask is redrawn with 2 px pixels (18×20, about the same size a
 What broke: nothing broke. I read the eye shape from the avatar project's eye pixel table without changing anything there.
 
 Commit: `cd28d62`
+
+## 20:52 — The Pair Programmer
+
+> I keep losing to Friday Deploy. I'm calling backup.
+>
+> Add a Pair Programmer: a buff pixel-art bro in a hoodie with two
+> orange machine guns, contrasting with cyan CodeMask.
+>
+> - He unlocks only after you lose to the boss at least once.
+> - During the boss fight, press B to call him, once per run.
+>   Show a hint "Press B — call your Pair Programmer" when available.
+> - He drops in with a big entrance, follows CodeMask, and unloads both
+>   machine guns at the boss and bugs for 15 seconds, then leaves.
+> - Without him the boss stays as hard as it is now.
+>
+> Don't rename him to anything else, and don't use any real company logos.
+
+The Pair Programmer is a buff 72×63 px bro (short hair, shades, beard, big arms, dark hoodie with an orange neon outline, no logos) who unlocks once you lose to the boss: dying in the fight or hitting 17:00. By hand the unlock is saved in the browser; in autoplay it only lasts for the session, so demos stay deterministic. Once per run, while the boss is up, "Press B — call your Pair Programmer" pulses at the bottom of the screen. He falls in from the top with a shockwave, a boom and "PAIR PROGRAMMER!", sticks next to CodeMask for 15 s with a timer bar over his head, fires two orange machine guns (left one at the boss, its shots punching through small bugs; right one at the bugs), then leaves with "brb, standup". The autoplay bot calls him 5 s into the fight when he's unlocked.
+
+What broke: the first sprite was the same size as CodeMask and looked hunched, so he got bigger, with real shoulders and arms. Then the orange guns melted into his orange outline, so they got a dark outline. Drawing guns aimed upward behind his body hid them completely, so that was reverted. Balance (16 seeds): without him nothing changed, and the replay check still matches byte for byte; the bot wins 8, dies 3 times, ruins the weekend 5 times. The first version of the backup only added one win, because its boss shots kept hitting small bugs in the way (26–42 damage of a possible 90). With piercing boss shots and 10 shots/s per gun instead of 6: 12 wins, 1 death, 3 ruined weekends.
+
+Commit: `ab9cd14`
