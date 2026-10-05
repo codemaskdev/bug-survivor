@@ -19,6 +19,7 @@ import { readAutoplay, autoplaySwing, resetBot } from '../ai/bot.js';
 import { updateFx, resetFx } from '../fx/particles.js';
 import { resetShake } from '../fx/shake.js';
 import { updateBanners, resetBanners } from '../ui/banner.js';
+import { updateDeploy, resetDeploy } from '../boss/deploy.js';
 
 export function resetGame() {
   resetPlayer();
@@ -36,6 +37,7 @@ export function resetGame() {
   resetDuck();
   resetRevert();
   resetBurnout();
+  resetDeploy();
   resetBot();
 }
 
@@ -60,11 +62,12 @@ export function update() {
   }
 
   game.roundTime += STEP;
-  if (game.roundTime >= game.nextWaveAt) {
+  if (!game.bossPhase && game.roundTime >= game.nextWaveAt) {
     spawnWave();
     game.nextWaveAt += WAVE_EVERY;
   }
   updateSpawns();
+  updateDeploy();
 
   movePlayer(AUTOPLAY ? readAutoplay() : readKeyboard());
   updateCamera(player.x, player.y);

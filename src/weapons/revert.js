@@ -34,7 +34,8 @@ export function revertCountdown() {
 }
 
 function wipe() {
-  const onScreen = (b) => isOnScreen(b.x, b.y);
+  // You can't revert a Friday deploy: the boss stays
+  const onScreen = (b) => !b.boss && isOnScreen(b.x, b.y);
   for (const b of game.bugs) {
     if (onScreen(b)) smashFx(b.x, b.y, false, '#f05033');
   }

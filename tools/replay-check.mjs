@@ -2,7 +2,7 @@
 // Replay check: proves a change didn't alter the game's behavior.
 //
 // Runs the real game loop headlessly (stubbed browser APIs, fake clock) for
-// 90 seconds per scenario and hashes every canvas call: positions, colors,
+// 180 seconds per scenario and hashes every canvas call: positions, colors,
 // HUD text. Any change in gameplay or drawing changes the hash.
 //
 //   node tools/replay-check.mjs            compare against replay-golden.json
@@ -22,7 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const GOLDEN = path.join(HERE, 'replay-golden.json');
-const SECONDS = 90;
+const SECONDS = 180;           // the whole run, boss fight included
 const SCENARIOS = ['seed1', 'seed2', 'seed7', 'manual'];
 
 const args = process.argv.slice(2);

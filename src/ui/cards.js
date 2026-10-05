@@ -5,6 +5,7 @@ import { game } from '../core/state.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { pickCard } from '../upgrades/levelup.js';
 import { drawIcon } from './icons.js';
+import { unlockAudio } from '../fx/sound.js';
 
 // Card layout, shared by drawing and mouse clicks
 const CARD_W = 220, CARD_H = 260, CARD_GAP = 30;
@@ -33,6 +34,7 @@ canvas.addEventListener('mousemove', (e) => {
   if (i >= 0) game.cardChoice = i;
 });
 canvas.addEventListener('click', (e) => {
+  unlockAudio();
   if (game.state !== 'levelup' || AUTOPLAY) return;
   const r = canvas.getBoundingClientRect();
   const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);

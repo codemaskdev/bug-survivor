@@ -14,6 +14,7 @@ import { drawReview } from '../weapons/review.js';
 import { drawDuck } from '../weapons/duck.js';
 import { drawRevert } from '../weapons/revert.js';
 import { drawBurnout } from '../weapons/burnout.js';
+import { drawDeployWarning, drawBossBar } from '../boss/deploy.js';
 import { drawFx } from '../fx/particles.js';
 import { shake } from '../fx/shake.js';
 import { drawHud } from '../ui/hud.js';
@@ -63,8 +64,10 @@ function frame(now) {
 
   // Screen-fixed layers
   drawRevert();
+  drawDeployWarning();
 
   drawHud();
+  drawBossBar();
   drawBanner();
   if (game.state === 'levelup') drawUpgradeCards();
   if (game.state === 'over') drawGameOver();

@@ -37,7 +37,7 @@ the video.
 
 ## Replay check
 - Run `node tools/replay-check.mjs` after every refactor. It replays the
-  game headlessly (autoplay seeds 1, 2, 7 and a scripted human, 90 s each)
+  game headlessly (autoplay seeds 1, 2, 7 and a scripted human, 180 s each)
   and compares a hash of every canvas call against tools/replay-golden.json.
   A refactor must pass with no changes to the golden file.
 - After an intentional gameplay or visual change, re-record the baseline

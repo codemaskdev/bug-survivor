@@ -11,6 +11,7 @@ import { nullptr } from './nullptr.js';
 import { leak } from './leak.js';
 import { loop } from './loop.js';
 import { merge, mergeOurs, mergeTheirs } from './merge.js';
+import { friday } from './friday.js';
 
 // ---------- Bug species registry ----------
 // To add a species: create a file next to this one exporting an object with
@@ -24,7 +25,7 @@ import { merge, mergeOurs, mergeTheirs } from './merge.js';
 const WAVE_SPECIES = [nullptr, leak, loop, merge];
 
 const TYPES = Object.fromEntries(
-  [nullptr, leak, loop, merge, mergeOurs, mergeTheirs].map((s) => [s.type, s])
+  [nullptr, leak, loop, merge, mergeOurs, mergeTheirs, friday].map((s) => [s.type, s])
 );
 
 const SPAWN_MARGIN = 30;     // px outside the screen where bugs appear
@@ -72,6 +73,11 @@ export function spawnWave() {
   }
   const gap = (WAVE_EVERY * 0.9) / roster.length;
   roster.forEach((type, i) => spawnQueue.push({ type, at: game.roundTime + i * gap }));
+}
+
+// The boss fight stops the regular waves, including bugs still on their way
+export function clearSpawnQueue() {
+  spawnQueue = [];
 }
 
 export function updateSpawns() {
@@ -136,7 +142,7 @@ export function updateBugs() {
   for (const b of bugs) {
     const sp = TYPES[b.type];
     if (b.flash > 0) b.flash -= STEP;
-    if (Math.hypot(player.x - b.x, player.y - b.y) > RESPAWN_DIST) respawnCloser(b);
+    if (!b.boss && Math.hypot(player.x - b.x, player.y - b.y) > RESPAWN_DIST) respawnCloser(b);
     const dx = player.x - b.x;
     const dy = player.y - b.y;
     const d = Math.hypot(dx, dy) || 1;
