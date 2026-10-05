@@ -2,29 +2,29 @@
   "seconds": 180,
   "runs": {
     "seed1": {
-      "hash": "9854fd7696a2615a",
-      "canvasCalls": 21485406,
+      "hash": "dbc783e5491f2e43",
+      "canvasCalls": 16773318,
       "hud": [
         "AUTOPLAY  seed 1   WAVE 18",
-        "HP 63",
-        "SMASHED 190",
-        "LINTER 2  ·  MECH 2  ·  TESTS 2  ·  REVIEW 2  ·  REVERT 3",
-        "LVL 12   32/49 commits"
+        "HP 71",
+        "SMASHED 189",
+        "LINTER 3  ·  MECH 2  ·  TESTS 2  ·  REVIEW 2  ·  REVERT 3",
+        "LVL 13   3/53 commits"
       ]
     },
     "seed2": {
-      "hash": "92f63edd5a02f96f",
-      "canvasCalls": 16804438,
+      "hash": "25bc7f6c4a096dc5",
+      "canvasCalls": 15756077,
       "hud": [
         "AUTOPLAY  seed 2   WAVE 1",
         "HP 100",
-        "SMASHED 2",
-        "LVL 1   4/5 commits"
+        "SMASHED 1",
+        "LVL 1   2/5 commits"
       ]
     },
     "seed7": {
-      "hash": "fe05eb978ff72716",
-      "canvasCalls": 21595184,
+      "hash": "c8986ebe0199cfc0",
+      "canvasCalls": 20273476,
       "hud": [
         "AUTOPLAY  seed 7   WAVE 2",
         "HP 100",

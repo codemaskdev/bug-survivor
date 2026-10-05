@@ -3,7 +3,7 @@ import { ctx } from '../../core/canvas.js';
 import { rng } from '../../core/rng.js';
 import { glitchNoise } from '../../fx/glitch.js';
 import { game } from '../../core/state.js';
-import { waveBonusHp } from './common.js';
+import { waveBonusHp, waveEase } from './common.js';
 
 // Null Pointer: the basic swarm. Fast, fragile, crawls straight at you.
 export const nullptr = {
@@ -12,7 +12,7 @@ export const nullptr = {
   from: 1,
   color: '#ff2e63',
   tip: 'fast, weak, comes in swarms',
-  countForWave: (wave) => Math.round(2 + 0.15 * wave + 0.038 * wave * wave),
+  countForWave: (wave) => Math.round((2 + 0.15 * wave + 0.038 * wave * wave) * waveEase(wave)),
 
   create(b) {
     b.r = 6;

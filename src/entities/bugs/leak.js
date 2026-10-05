@@ -1,6 +1,6 @@
 import { STEP } from '../../config.js';
 import { ctx } from '../../core/canvas.js';
-import { waveBonusHp } from './common.js';
+import { waveBonusHp, waveEase } from './common.js';
 
 const START_R = 8;
 const MAX_R = 34;
@@ -17,7 +17,7 @@ export const leak = {
   from: 3,
   color: '#a855ff',
   tip: 'keeps growing. kill it early',
-  countForWave: (wave) => 1 + Math.floor((wave - 3) / 6),
+  countForWave: (wave) => Math.round((1 + Math.floor((wave - 3) / 6)) * waveEase(wave)),
   knockback: 30,
 
   create(b) {

@@ -5,8 +5,15 @@ import { game } from '../../core/state.js';
 // never bugs/index.js, so there are no circular imports.
 
 // Later waves are a bit tougher, so damage upgrades matter
+// (but waves 15-20 stay at +1: that's where fighting players were dying)
 export function waveBonusHp() {
-  return Math.max(0, Math.floor((game.wave - 1) / 7));
+  const bonus = Math.max(0, Math.floor((game.wave - 1) / 7));
+  return game.wave >= 15 && game.wave <= 20 ? Math.min(bonus, 1) : bonus;
+}
+
+// Waves 15-20 send 20% fewer of the big swarms
+export function waveEase(wave) {
+  return wave >= 15 && wave <= 20 ? 0.8 : 1;
 }
 
 export function moveToward(b, tx, ty, speed) {
