@@ -201,3 +201,24 @@ Code Review sends a blue ring rolling out from CodeMask every 4 s (0.5 s faster 
 What broke: nothing broke. All three autoplay seeds survive the full 90 s again, including seed 1, which picked Code Review up to level 3.
 
 Commit: `d14795f`
+
+## 18:59 — Rubber Duck
+
+> More upgrades for the card pool:
+>
+> - Unit Tests: shields orbiting CodeMask that smash bugs on contact.
+>   More levels = more shields.
+> - Code Review: every few seconds, a pulse wave around CodeMask that
+>   damages and pushes back all nearby bugs.
+> - Rubber Duck: a little duck companion that follows CodeMask and pecks
+>   the nearest bug. Squeaks when it hits.
+> - git revert: every 30 seconds, wipes all bugs on screen. Rare card.
+>
+> Also replace the emoji icons on all cards with small pixel-art icons
+> drawn in code, matching the game's neon style.
+
+Rubber Duck adds a little yellow pixel duck that follows behind CodeMask, then flies at the nearest bug within 170 px, pecks it (its beak opens wider), pops a yellow "squeak!" and flies back while its peck cools down. Each level pecks about 15% faster, and every other level adds a point of damage. The squeak is a pop-up like CLACK: the game has no sound at all yet.
+
+What surprised me: I wrote `player.facingSign()` for which side the duck should trail on, a function that doesn't exist; caught it reading the code before the first run and used `player.lookX` instead. Also, two of the three autoplay seeds now die late in the run (seed 1 at 63 s with a level-1 duck, seed 7 at 81 s without one). Every new card shifts which cards the bot is offered and which it randomly picks, so its builds and its luck change from commit to commit.
+
+Commit: `921d982`
