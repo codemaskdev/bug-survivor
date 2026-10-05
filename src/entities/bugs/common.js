@@ -6,7 +6,7 @@ import { game } from '../../core/state.js';
 
 // Later waves are a bit tougher, so damage upgrades matter
 export function waveBonusHp() {
-  return Math.max(0, Math.floor((game.wave - 1) / 4));
+  return Math.max(0, Math.floor((game.wave - 1) / 7));
 }
 
 export function moveToward(b, tx, ty, speed) {

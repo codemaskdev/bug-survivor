@@ -14,7 +14,7 @@ export const loop = {
   from: 5,
   color: '#ff8c1a',
   tip: 'circles you, then dashes in',
-  countForWave: (wave) => Math.floor((wave - 3) / 2),
+  countForWave: (wave) => 1 + Math.floor((wave - 5) / 6),
 
   create(b) {
     b.r = 8;

@@ -17,8 +17,8 @@ export const leak = {
   from: 3,
   color: '#a855ff',
   tip: 'keeps growing. kill it early',
-  countForWave: (wave) => Math.floor((wave - 1) / 2),
-  knockback: 12,
+  countForWave: (wave) => 1 + Math.floor((wave - 3) / 6),
+  knockback: 30,
 
   create(b) {
     b.r = START_R;
@@ -37,9 +37,9 @@ export const leak = {
     }
   },
 
-  // Bigger leaks hit harder
+  // Bigger leaks hit harder (up to 18 at full size)
   contactDamage(b) {
-    return b.damage + Math.floor((b.r - START_R) / 4) * 2;
+    return b.damage + Math.floor((b.r - START_R) / 9) * 2;
   },
 
   // A wobbly purple pixel blob with goofy eyes, dripping as it grows

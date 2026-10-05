@@ -17,7 +17,7 @@ export const merge = {
   from: 7,
   color: BLUE,
   tip: 'splits in two when hit',
-  countForWave: (wave) => Math.floor((wave - 5) / 2),
+  countForWave: (wave) => 1 + Math.floor((wave - 7) / 6),
 
   create(b) {
     b.r = 11;

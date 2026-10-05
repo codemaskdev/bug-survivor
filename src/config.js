@@ -9,11 +9,11 @@ export const STEP = 1 / 60;        // fixed simulation step (keeps autoplay dete
 
 export const PLAYER_MAX_HP = 100;
 export const PLAYER_RADIUS = 14;   // hitbox
-export const HIT_COOLDOWN = 0.7;   // seconds of invulnerability after a hit
+export const HIT_COOLDOWN = 1.0;   // seconds of invulnerability after a hit
 
 export const BUG_PIXEL = 2;
 export const BUG_SPEED = 125;      // fast, but CodeMask can still outrun them
-export const BUG_DAMAGE = 10;
+export const BUG_DAMAGE = 8;
 export const FIRST_WAVE_AT = 1.5;  // seconds
 export const WAVE_EVERY = 6;       // seconds between waves
 

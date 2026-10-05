@@ -1,4 +1,4 @@
-import { STEP, PLAYER_RADIUS, HIT_COOLDOWN } from '../../config.js';
+import { STEP, PLAYER_RADIUS, HIT_COOLDOWN, WAVE_EVERY } from '../../config.js';
 import { pointAroundView } from '../../core/camera.js';
 import { rng } from '../../core/rng.js';
 import { game } from '../../core/state.js';
@@ -33,10 +33,12 @@ const MAX_BUGS = 160;        // a wave stops spawning once this many are alive
 
 let seenSpecies = new Set();
 let newBugs = [];            // bugs born mid-update (merge splits)
+let spawnQueue = [];         // { type, at }: this wave's bugs, waiting for their moment
 
 export function resetBugs() {
   seenSpecies = new Set();
   newBugs = [];
+  spawnQueue = [];
 }
 
 export function makeBug(type, x, y) {
@@ -53,7 +55,8 @@ export function makeBug(type, x, y) {
   return b;
 }
 
-// Each wave is bigger than the last and appears just outside the screen,
+// Each wave is bigger than the last. Its bugs don't arrive all at once:
+// they trickle in, shuffled, over most of the wave, just outside the screen
 // all around CodeMask. New species join the mix gradually.
 export function spawnWave() {
   game.wave++;
@@ -63,9 +66,18 @@ export function spawnWave() {
     if (wave < sp.from) continue;
     for (let i = 0; i < sp.countForWave(wave); i++) roster.push(sp.type);
   }
+  for (let i = roster.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [roster[i], roster[j]] = [roster[j], roster[i]];
+  }
+  const gap = (WAVE_EVERY * 0.9) / roster.length;
+  roster.forEach((type, i) => spawnQueue.push({ type, at: game.roundTime + i * gap }));
+}
 
-  for (const type of roster) {
-    if (game.bugs.length >= MAX_BUGS) break;
+export function updateSpawns() {
+  while (spawnQueue.length && spawnQueue[0].at <= game.roundTime) {
+    const { type } = spawnQueue.shift();
+    if (game.bugs.length >= MAX_BUGS) continue;   // over the cap: this one never comes
     const pt = pointAroundView(SPAWN_MARGIN, rng);
     game.bugs.push(makeBug(type, pt.x, pt.y));
     if (!seenSpecies.has(type)) {

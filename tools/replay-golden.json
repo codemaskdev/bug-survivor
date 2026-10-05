@@ -2,46 +2,47 @@
   "seconds": 90,
   "runs": {
     "seed1": {
-      "hash": "879f478f65aab5f5",
-      "canvasCalls": 43182851,
+      "hash": "6b0e3c58d8bc4015",
+      "canvasCalls": 9125869,
       "hud": [
         "AUTOPLAY  seed 1   WAVE 14",
-        "HP 22",
-        "SMASHED 155",
-        "LINTER 2  ·  MECH 2  ·  REVIEW 2",
-        "LVL 7   1/29 commits"
+        "HP 92",
+        "SMASHED 88",
+        "LINTER 1  ·  TESTS 1  ·  REVIEW 1  ·  REVERT 2",
+        "LVL 6   13/25 commits"
       ]
     },
     "seed2": {
-      "hash": "dea60e93824564b6",
-      "canvasCalls": 22486635,
+      "hash": "c95f7441eb12642b",
+      "canvasCalls": 6651329,
       "hud": [
         "AUTOPLAY  seed 2   WAVE 14",
-        "HP 60",
-        "SMASHED 139",
-        "LINTER 2  ·  MECH 1  ·  TESTS 1  ·  REVIEW 1  ·  REVERT 1",
-        "LVL 7   10/29 commits"
+        "HP 100",
+        "SMASHED 94",
+        "LINTER 1  ·  MECH 1  ·  TESTS 1  ·  REVIEW 2  ·  REVERT 1",
+        "LVL 7   3/29 commits"
       ]
     },
     "seed7": {
-      "hash": "d3d83bd509c8d899",
-      "canvasCalls": 36508170,
+      "hash": "0b3b173b83fe4381",
+      "canvasCalls": 7479819,
       "hud": [
         "AUTOPLAY  seed 7   WAVE 14",
-        "HP 0",
-        "SMASHED 78",
-        "TESTS 1  ·  REVIEW 1  ·  REVERT 2",
-        "LVL 5   11/21 commits"
+        "HP 88",
+        "SMASHED 77",
+        "LINTER 1  ·  TESTS 1  ·  REVIEW 1  ·  REVERT 2",
+        "LVL 6   3/25 commits"
       ]
     },
     "manual": {
-      "hash": "121fb9414127cc8c",
-      "canvasCalls": 8041587,
+      "hash": "2b090bbd566a7390",
+      "canvasCalls": 9080571,
       "hud": [
-        "WAVE 3",
-        "HP 60",
-        "SMASHED 5",
-        "LVL 1   2/5 commits"
+        "WAVE 7",
+        "HP 84",
+        "SMASHED 12",
+        "MECH 1",
+        "LVL 2   4/9 commits"
       ]
     }
   }

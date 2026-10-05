@@ -4,7 +4,7 @@ import { game, resetState } from './state.js';
 import { input, readKeyboard } from './input.js';
 import { updateCamera, resetCamera } from './camera.js';
 import { player, resetPlayer, movePlayer } from '../entities/player.js';
-import { spawnWave, updateBugs, resetBugs } from '../entities/bugs/index.js';
+import { spawnWave, updateSpawns, updateBugs, resetBugs } from '../entities/bugs/index.js';
 import { updateCommits } from '../entities/commits.js';
 import { startSwing, updateSwing, resetSwing } from '../weapons/keyboard.js';
 import { updateLinter, resetLinter } from '../weapons/linter.js';
@@ -62,6 +62,7 @@ export function update() {
     spawnWave();
     game.nextWaveAt += WAVE_EVERY;
   }
+  updateSpawns();
 
   movePlayer(AUTOPLAY ? readAutoplay() : readKeyboard());
   updateCamera(player.x, player.y);

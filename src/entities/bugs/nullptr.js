@@ -2,6 +2,7 @@ import { BUG_PIXEL, BUG_SPEED, BUG_DAMAGE } from '../../config.js';
 import { ctx } from '../../core/canvas.js';
 import { rng } from '../../core/rng.js';
 import { glitchNoise } from '../../fx/glitch.js';
+import { game } from '../../core/state.js';
 import { waveBonusHp } from './common.js';
 
 // Null Pointer: the basic swarm. Fast, fragile, crawls straight at you.
@@ -11,11 +12,12 @@ export const nullptr = {
   from: 1,
   color: '#ff2e63',
   tip: 'fast, weak, comes in swarms',
-  countForWave: (wave) => 4 + wave * 2,
+  countForWave: (wave) => Math.round(2 + 0.15 * wave + 0.038 * wave * wave),
 
   create(b) {
     b.r = 6;
-    b.speed = BUG_SPEED * (0.85 + rng() * 0.3);
+    // Early waves are a bit slower; full speed from wave 15 (1:30)
+    b.speed = BUG_SPEED * (0.85 + rng() * 0.3) * (0.75 + 0.25 * Math.min(1, game.wave / 15));
     b.hp = 1 + waveBonusHp();
     b.damage = BUG_DAMAGE;
   },
