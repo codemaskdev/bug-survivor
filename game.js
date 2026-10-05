@@ -26,6 +26,11 @@ const SWING_COOLDOWN = 0.45; // from the start of one swing to the next
 const SWING_REACH = 64;      // px from CodeMask's center
 const SWING_ARC = Math.PI * 0.75; // 135° in front of CodeMask
 
+const COMMIT_PICKUP = 16;    // px: walking this close collects a commit
+const COMMIT_MAGNET = 70;    // px: commits start drifting toward CodeMask
+const LINT_SPEED = 420;      // px per second
+const LINT_RANGE = 520;      // px before a shot fizzles out
+
 const params = new URLSearchParams(location.search);
 const AUTOPLAY = params.get('autoplay') === '1';
 const SEED = Number(params.get('seed')) || 1;
@@ -68,6 +73,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyR' || e.code === 'Enter') restartPressed = true;
   if (e.code === 'Space' || e.code === 'KeyJ') swingPressed = true;
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+  if (state === 'levelup' && !AUTOPLAY) handleCardKey(e.code);
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
 window.addEventListener('blur', () => keys.clear());
@@ -143,6 +149,13 @@ let particles = [];         // flying keycaps and bug bits
 let popups = [];            // "CLACK!" texts
 let shake = 0;              // screen shake strength, decays to 0
 let shakeX = 0, shakeY = 0;
+let commits = [];           // green XP dots on the floor
+let lints = [];             // Linter shots in flight
+let xp = 0;
+let level = 1;
+let levelupTime = 0;        // seconds since the upgrade cards appeared
+let cardChoice = 1;         // highlighted card (0..2)
+let botPick = -1;           // the card the autoplay bot is going to take
 
 function resetGame() {
   player.x = ARENA_W / 2;
@@ -158,6 +171,12 @@ function resetGame() {
   particles = [];
   popups = [];
   shake = 0;
+  commits = [];
+  lints = [];
+  xp = 0;
+  level = 1;
+  for (const u of UPGRADES) u.level = 0;
+  linterTimer = 0;
   bugs = [];
   wave = 0;
   nextWaveAt = FIRST_WAVE_AT;
@@ -191,12 +210,35 @@ function spawnWave() {
       angle: 0,
       speed: BUG_SPEED * (0.85 + rng() * 0.3),
       stun: 0,
+      hp: bugHp(),
+      flash: 0,        // white flash when hit but not dead
+      swingId: -1,     // last swing that hit this bug (one hit per swing)
     });
   }
 }
 
+// Later waves are a bit tougher, so damage upgrades matter
+function bugHp() {
+  return 1 + Math.floor((wave - 1) / 4);
+}
+
+// Returns true if the bug died. Dead bugs are removed by the caller.
+function damageBug(b, amount, fromKeyboard) {
+  b.hp -= amount;
+  if (b.hp > 0) {
+    b.flash = 0.1;
+    b.stun = 0.15;
+    return false;
+  }
+  smashed++;
+  commits.push({ x: b.x, y: b.y, age: 0 });
+  smashFx(b.x, b.y, fromKeyboard);
+  return true;
+}
+
 function updateBugs() {
   for (const b of bugs) {
+    if (b.flash > 0) b.flash -= STEP;
     const dx = player.x - b.x;
     const dy = player.y - b.y;
     const d = Math.hypot(dx, dy) || 1;
@@ -244,8 +286,22 @@ function angleDiff(a, b) {
   return d;
 }
 
+// Mechanical Keyboard upgrade: wider, longer, harder swings
+function swingArc() {
+  return Math.min(Math.PI * 2, SWING_ARC + UP.mech.level * (Math.PI / 6));
+}
+function swingReach() {
+  return SWING_REACH + UP.mech.level * 8;
+}
+function swingDamage() {
+  return 1 + UP.mech.level;
+}
+
+let swingCount = 0;
+
 function startSwing(angle) {
   if (swing.cooldown > 0) return;
+  swing.id = swingCount++;
   swing.angle = angle;
   swing.timer = SWING_TIME;
   swing.cooldown = SWING_COOLDOWN;
@@ -258,38 +314,209 @@ function updateSwing() {
   swing.timer -= STEP;
 
   const hits = [];
+  const reach = swingReach();
+  const arc = swingArc();
   bugs = bugs.filter((b) => {
+    if (b.swingId === swing.id) return true;
     const dx = b.x - player.x;
     const dy = b.y - player.y;
-    const inReach = Math.hypot(dx, dy) < SWING_REACH + BUG_RADIUS;
-    const inArc = Math.abs(angleDiff(Math.atan2(dy, dx), swing.angle)) < SWING_ARC / 2;
-    if (inReach && inArc) {
-      hits.push(b);
-      return false;
-    }
-    return true;
+    const inReach = Math.hypot(dx, dy) < reach + BUG_RADIUS;
+    const inArc = Math.abs(angleDiff(Math.atan2(dy, dx), swing.angle)) < arc / 2;
+    if (!inReach || !inArc) return true;
+    b.swingId = swing.id;
+    hits.push(b);
+    return !damageBug(b, swingDamage(), true);
   });
   if (hits.length === 0) return;
 
-  smashed += hits.length;
-  shake = Math.min(6, shake + 2 + hits.length);
-  for (const b of hits) smashFx(b.x, b.y);
+  // A mechanical keyboard is louder: bigger CLACK, more !, more shake
+  const loud = UP.mech.level;
+  shake = Math.min(6 + Math.min(loud, 2), shake + 2 + hits.length + loud);
   const cx = hits.reduce((s, b) => s + b.x, 0) / hits.length;
   const cy = hits.reduce((s, b) => s + b.y, 0) / hits.length;
+  const word = 'CLACK' + '!'.repeat(1 + Math.min(loud, 2));
+  // The newest CLACK replaces any older one in the same spot, so they don't pile up
+  popups = popups.filter((p) => Math.hypot(p.x - cx, p.y - (cy - 10)) > 60);
   popups.push({
     x: cx,
     y: cy - 10,
-    text: hits.length > 1 ? `CLACK! x${hits.length}` : 'CLACK!',
+    text: hits.length > 1 ? `${word} x${hits.length}` : word,
+    size: 18 + Math.min(loud, 4) * 3,
     life: 0.7,
     tilt: (fxRng() - 0.5) * 0.4,
   });
 }
 
+// ---------- Linter ----------
+// Auto-fires at the nearest bug. Each level fires faster.
+let linterTimer = 0;
+
+function updateLinter() {
+  if (UP.linter.level > 0) {
+    linterTimer -= STEP;
+    if (linterTimer <= 0) {
+      let best = null, bestD = LINT_RANGE;
+      for (const b of bugs) {
+        const d = Math.hypot(b.x - player.x, b.y - player.y);
+        if (d < bestD) { best = b; bestD = d; }
+      }
+      if (best) {
+        const a = Math.atan2(best.y - player.y, best.x - player.x);
+        lints.push({ x: player.x, y: player.y, vx: Math.cos(a) * LINT_SPEED, vy: Math.sin(a) * LINT_SPEED, dist: 0 });
+        linterTimer = linterInterval();
+      }
+    }
+  }
+
+  for (const l of lints) {
+    l.x += l.vx * STEP;
+    l.y += l.vy * STEP;
+    l.dist += LINT_SPEED * STEP;
+    for (const b of bugs) {
+      if (b.dead) continue;
+      if (Math.hypot(b.x - l.x, b.y - l.y) < BUG_RADIUS + 3) {
+        if (damageBug(b, 1, false)) b.dead = true;
+        l.dist = LINT_RANGE; // shot is spent
+        break;
+      }
+    }
+  }
+  lints = lints.filter((l) => l.dist < LINT_RANGE);
+  bugs = bugs.filter((b) => !b.dead);
+}
+
+function linterInterval() {
+  return Math.pow(0.8, UP.linter.level - 1);
+}
+
+// ---------- Commits (XP) ----------
+function xpToNext() {
+  return 5 + (level - 1) * 4;
+}
+
+function updateCommits() {
+  for (const c of commits) {
+    c.age += STEP;
+    const dx = player.x - c.x;
+    const dy = player.y - c.y;
+    const d = Math.hypot(dx, dy);
+    if (d < COMMIT_PICKUP) {
+      c.taken = true;
+      xp++;
+    } else if (d < COMMIT_MAGNET) {
+      const pull = 260 * (1 - d / COMMIT_MAGNET) + 60;
+      c.x += (dx / d) * pull * STEP;
+      c.y += (dy / d) * pull * STEP;
+    }
+  }
+  commits = commits.filter((c) => !c.taken);
+
+  if (xp >= xpToNext()) {
+    xp -= xpToNext();
+    level++;
+    openUpgradeCards();
+  }
+}
+
+// ---------- Upgrades ----------
+const UPGRADES = [
+  {
+    key: 'linter',
+    name: 'Linter',
+    icon: '⚠',
+    level: 0,
+    describe: (lv) => lv === 0
+      ? 'Auto-fires a shot at the nearest bug every second.'
+      : `Fires faster: every ${Math.pow(0.8, lv).toFixed(2)}s.`,
+  },
+  {
+    key: 'mech',
+    name: 'Mechanical Keyboard',
+    icon: '⌨',
+    level: 0,
+    describe: () => 'Bigger swing arc, +1 damage, louder CLACK.',
+  },
+  {
+    key: 'coffee',
+    name: 'Coffee',
+    icon: '☕',
+    level: 0,
+    describe: () => 'CodeMask moves 15% faster.',
+  },
+];
+const UP = Object.fromEntries(UPGRADES.map((u) => [u.key, u]));
+
+function playerSpeed() {
+  return PLAYER_SPEED * (1 + UP.coffee.level * 0.15);
+}
+
+function openUpgradeCards() {
+  state = 'levelup';
+  levelupTime = 0;
+  cardChoice = 1;
+  botPick = AUTOPLAY ? Math.floor(rng() * UPGRADES.length) : -1;
+}
+
+function pickCard(i) {
+  if (state !== 'levelup' || levelupTime < 0.3) return;
+  UPGRADES[i].level++;
+  state = 'playing';
+  swingPressed = false;
+  // Leftover XP might already fill the next bar
+  if (xp >= xpToNext()) {
+    xp -= xpToNext();
+    level++;
+    openUpgradeCards();
+  }
+}
+
+function handleCardKey(code) {
+  if (code === 'Digit1' || code === 'Numpad1') pickCard(0);
+  else if (code === 'Digit2' || code === 'Numpad2') pickCard(1);
+  else if (code === 'Digit3' || code === 'Numpad3') pickCard(2);
+  else if (code === 'ArrowLeft' || code === 'KeyA') cardChoice = Math.max(0, cardChoice - 1);
+  else if (code === 'ArrowRight' || code === 'KeyD') cardChoice = Math.min(2, cardChoice + 1);
+  else if (code === 'Enter' || code === 'KeyE') pickCard(cardChoice);
+}
+
+// Card layout, shared by drawing and mouse clicks
+const CARD_W = 220, CARD_H = 260, CARD_GAP = 30;
+function cardRect(i) {
+  const total = CARD_W * 3 + CARD_GAP * 2;
+  return {
+    x: (ARENA_W - total) / 2 + i * (CARD_W + CARD_GAP),
+    y: (ARENA_H - CARD_H) / 2 + 20,
+    w: CARD_W,
+    h: CARD_H,
+  };
+}
+
+function cardAt(px, py) {
+  for (let i = 0; i < 3; i++) {
+    const r = cardRect(i);
+    if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return i;
+  }
+  return -1;
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  if (state !== 'levelup' || AUTOPLAY) return;
+  const r = canvas.getBoundingClientRect();
+  const i = cardAt((e.clientX - r.left) * ARENA_W / r.width, (e.clientY - r.top) * ARENA_H / r.height);
+  if (i >= 0) cardChoice = i;
+});
+canvas.addEventListener('click', (e) => {
+  if (state !== 'levelup' || AUTOPLAY) return;
+  const r = canvas.getBoundingClientRect();
+  const i = cardAt((e.clientX - r.left) * ARENA_W / r.width, (e.clientY - r.top) * ARENA_H / r.height);
+  if (i >= 0) pickCard(i);
+});
+
 const KEYCAP_LETTERS = 'QWERTYASDFGHZXCV{};/<>';
 
-function smashFx(x, y) {
-  // Keycaps pop off and tumble away
-  const caps = 2 + Math.floor(fxRng() * 2);
+function smashFx(x, y, fromKeyboard) {
+  // Keycaps pop off and tumble away (only when the keyboard did it)
+  const caps = fromKeyboard ? 2 + Math.floor(fxRng() * 2) + UP.mech.level : 0;
   for (let i = 0; i < caps; i++) {
     const a = fxRng() * Math.PI * 2;
     const v = 90 + fxRng() * 120;
@@ -371,6 +598,18 @@ function readAutoplay() {
   if (player.y > ARENA_H - m) fy -= (player.y - (ARENA_H - m)) / m;
   const scared = Math.hypot(fx, fy) > 0.05;
 
+  // Go grab the nearest commit, if there's one worth walking to
+  let bestC = null, bestCD = 300;
+  for (const c of commits) {
+    const d = Math.hypot(c.x - player.x, c.y - player.y);
+    if (d < bestCD) { bestC = c; bestCD = d; }
+  }
+  if (bestC) {
+    bot.tx = bestC.x;
+    bot.ty = bestC.y;
+    bot.wait = 0;
+  }
+
   if (!scared && bot.wait > 0) {
     bot.wait -= STEP;
     return { x: 0, y: 0 };
@@ -392,7 +631,7 @@ function readAutoplay() {
 
 // Turn toward the closest bug in reach and swing at it
 function autoplaySwing() {
-  let best = null, bestD = SWING_REACH * 0.9;
+  let best = null, bestD = swingReach() * 0.9;
   for (const b of bugs) {
     const d = Math.hypot(b.x - player.x, b.y - player.y);
     if (d < bestD) { best = b; bestD = d; }
@@ -416,6 +655,16 @@ function update() {
   }
   restartPressed = false;
 
+  if (state === 'levelup') {
+    // Game is paused while the cards are up
+    levelupTime += STEP;
+    if (AUTOPLAY) {
+      if (levelupTime > 0.5) cardChoice = botPick;
+      if (levelupTime > 1.4) pickCard(botPick);
+    }
+    return;
+  }
+
   roundTime += STEP;
   if (roundTime >= nextWaveAt) {
     spawnWave();
@@ -429,8 +678,8 @@ function update() {
   if (player.moving) {
     const nx = input.x / len;
     const ny = input.y / len;
-    player.x += nx * PLAYER_SPEED * STEP;
-    player.y += ny * PLAYER_SPEED * STEP;
+    player.x += nx * playerSpeed() * STEP;
+    player.y += ny * playerSpeed() * STEP;
     player.lookX = Math.abs(nx) > 0.3 ? Math.sign(nx) : 0;
     player.lookY = Math.abs(ny) > 0.3 ? Math.sign(ny) : 0;
     player.facing = Math.atan2(ny, nx);
@@ -453,7 +702,9 @@ function update() {
   swingPressed = false;
 
   updateSwing();
+  updateLinter();
   updateBugs();
+  updateCommits();
   updateFx();
 
   if (player.hp <= 0) {
@@ -558,6 +809,47 @@ function drawBugSprite(frame, colors) {
 
 const GLITCH_CYAN = { a: '#00f0ff', r: '#00f0ff', R: '#00f0ff', W: '#00f0ff', l: '#00f0ff' };
 
+const BUG_FLASH_COLORS = { a: '#fff', r: '#fff', R: '#fff', W: '#fff', l: '#fff' };
+
+// Commits: small glowing green dots that bob a little
+function drawCommits(time) {
+  ctx.save();
+  ctx.fillStyle = '#39ff88';
+  ctx.shadowColor = '#39ff88';
+  ctx.shadowBlur = 8;
+  for (const c of commits) {
+    const pop = Math.min(1, c.age * 6);
+    const s = Math.round(5 * pop) || 1;
+    const bob = Math.round(Math.sin(time * 5 + c.x * 0.1) * 1.5);
+    ctx.fillRect(Math.round(c.x - s / 2), Math.round(c.y - s / 2) + bob, s, s);
+  }
+  ctx.restore();
+}
+
+// Linter shots: little yellow warning squiggles
+function drawLints() {
+  ctx.save();
+  ctx.strokeStyle = '#ffd23f';
+  ctx.shadowColor = '#ffd23f';
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2;
+  for (const l of lints) {
+    const a = Math.atan2(l.vy, l.vx);
+    ctx.save();
+    ctx.translate(l.x, l.y);
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.moveTo(-8, 0);
+    ctx.lineTo(-5, -2);
+    ctx.lineTo(-2, 2);
+    ctx.lineTo(1, -2);
+    ctx.lineTo(4, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 function drawBugs(time) {
   const tick = Math.floor(time * 20);
   for (const b of bugs) {
@@ -578,7 +870,7 @@ function drawBugs(time) {
     }
     ctx.shadowColor = '#ff2e63';
     ctx.shadowBlur = 6;
-    drawBugSprite(frame, BUG_COLORS);
+    drawBugSprite(frame, b.flash > 0 ? BUG_FLASH_COLORS : BUG_COLORS);
     ctx.restore();
   }
 }
@@ -638,8 +930,10 @@ function drawSwing() {
   if (swing.timer <= 0) return;
   const t = 1 - swing.timer / SWING_TIME;
   const eased = 1 - (1 - t) * (1 - t);
-  const start = swing.angle - SWING_ARC / 2;
-  const now = start + SWING_ARC * eased;
+  const arc = swingArc();
+  const reach = swingReach();
+  const start = swing.angle - arc / 2;
+  const now = start + arc * eased;
 
   ctx.save();
   ctx.translate(player.x, player.y);
@@ -648,11 +942,11 @@ function drawSwing() {
   ctx.lineWidth = 18;
   ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(0, 0, SWING_REACH * 0.68, start, now);
+  ctx.arc(0, 0, reach * 0.68, start, now);
   ctx.stroke();
 
   ctx.rotate(now);
-  const r = 36;
+  const r = Math.round(reach * 0.56);
   // Body (long side along the arc)
   ctx.fillStyle = '#9fb3c8';
   ctx.fillRect(r - 7, -18, 14, 36);
@@ -699,7 +993,7 @@ function drawFx() {
     ctx.translate(p.x, p.y);
     ctx.rotate(p.tilt);
     ctx.scale(pop, pop);
-    ctx.font = 'bold 18px monospace';
+    ctx.font = `bold ${p.size}px monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 4;
@@ -739,12 +1033,115 @@ function drawHud() {
   ctx.font = '11px monospace';
   ctx.fillText(`HP ${player.hp}`, x + w + 10, y - 1);
   ctx.fillText(`SMASHED ${smashed}`, x, y + 18);
+  const owned = UPGRADES.filter((u) => u.level > 0).map((u) => `${u.name.toUpperCase()} ${u.level}`);
+  if (owned.length) ctx.fillText(owned.join('  ·  '), x, y + 34);
+
+  // XP bar along the bottom edge
+  const xpFrac = Math.min(1, xp / xpToNext());
+  ctx.fillStyle = 'rgba(57, 255, 136, 0.12)';
+  ctx.fillRect(16, ARENA_H - 22, ARENA_W - 32, 6);
+  ctx.save();
+  ctx.fillStyle = '#39ff88';
+  ctx.shadowColor = '#39ff88';
+  ctx.shadowBlur = 8;
+  ctx.fillRect(16, ARENA_H - 22, Math.round((ARENA_W - 32) * xpFrac), 6);
+  ctx.restore();
+  ctx.fillStyle = 'rgba(57, 255, 136, 0.8)';
+  ctx.fillText(`LVL ${level}   ${xp}/${xpToNext()} commits`, 16, ARENA_H - 38);
 
   // Red flash when hit
   if (hitFlash > 0) {
     ctx.fillStyle = `rgba(255, 46, 99, ${hitFlash * 0.18})`;
     ctx.fillRect(0, 0, ARENA_W, ARENA_H);
   }
+}
+
+function wrapText(text, maxW) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawUpgradeCards() {
+  ctx.fillStyle = `rgba(5, 6, 10, ${Math.min(0.75, levelupTime * 4)})`;
+  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 36px monospace';
+  ctx.fillStyle = '#39ff88';
+  ctx.shadowColor = '#39ff88';
+  ctx.shadowBlur = 16;
+  ctx.fillText(`LEVEL UP  ·  LVL ${level}`, ARENA_W / 2, cardRect(0).y - 50);
+  ctx.restore();
+
+  const slide = Math.min(1, levelupTime * 5);
+  for (let i = 0; i < 3; i++) {
+    const u = UPGRADES[i];
+    const r = cardRect(i);
+    const selected = i === cardChoice;
+    const y = r.y + (1 - slide) * 40 - (selected ? 8 : 0);
+
+    ctx.save();
+    ctx.globalAlpha = slide;
+    ctx.fillStyle = selected ? '#0f1a22' : '#0b0d13';
+    ctx.fillRect(r.x, y, r.w, r.h);
+    ctx.strokeStyle = selected ? '#00f0ff' : 'rgba(0, 240, 255, 0.35)';
+    ctx.lineWidth = 2;
+    if (selected) {
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 16;
+    }
+    ctx.strokeRect(r.x + 1, y + 1, r.w - 2, r.h - 2);
+    ctx.shadowBlur = 0;
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '44px monospace';
+    ctx.fillStyle = '#e6ebf2';
+    ctx.fillText(u.icon, r.x + r.w / 2, y + 60);
+
+    ctx.font = 'bold 17px monospace';
+    ctx.fillStyle = '#00f0ff';
+    for (const [k, line] of wrapText(u.name, r.w - 24).entries()) {
+      ctx.fillText(line, r.x + r.w / 2, y + 112 + k * 20);
+    }
+
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(230, 235, 242, 0.85)';
+    for (const [k, line] of wrapText(u.describe(u.level), r.w - 30).entries()) {
+      ctx.fillText(line, r.x + r.w / 2, y + 164 + k * 17);
+    }
+
+    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = '#39ff88';
+    ctx.fillText(u.level === 0 ? 'NEW' : `LV ${u.level} → ${u.level + 1}`, r.x + r.w / 2, y + r.h - 40);
+
+    ctx.font = '12px monospace';
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+    ctx.fillText(`[${i + 1}]`, r.x + r.w / 2, y + r.h - 18);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = '13px monospace';
+  ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
+  ctx.fillText(AUTOPLAY ? 'bot is choosing…' : '1 / 2 / 3, click, or ← → + Enter',
+    ARENA_W / 2, cardRect(0).y + CARD_H + 40);
+  ctx.restore();
 }
 
 function drawGameOver() {
@@ -792,12 +1189,15 @@ function frame(now) {
   ctx.save();
   ctx.translate(Math.round(shakeX), Math.round(shakeY));
   drawArena(simTime);
+  drawCommits(simTime);
   drawPlayer(simTime);
   drawBugs(simTime);
   drawSwing();
+  drawLints();
   drawFx();
   ctx.restore();
   drawHud();
+  if (state === 'levelup') drawUpgradeCards();
   if (state === 'over') drawGameOver();
   requestAnimationFrame(frame);
 }
