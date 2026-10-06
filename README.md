@@ -2,6 +2,8 @@
 
 **▶ Play: https://codemaskdev.github.io/bug-survivor/**
 
+How it was made → [HOW-IT-WAS-MADE.md](HOW-IT-WAS-MADE.md)
+
 It's Friday, 16:57. Three minutes until the weekend, and the bugs are
 coming. Bug Survivor is a short neon pixel-art survivor game: you are
 CodeMask, armed with a keyboard. Smash Null Pointers, Memory Leaks,
