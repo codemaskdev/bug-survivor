@@ -1,6 +1,5 @@
 import { STEP, WAVE_EVERY } from '../config.js';
-import { AUTOPLAY } from './params.js';
-import { game, resetState } from './state.js';
+import { game, resetState, session, botPlays } from './state.js';
 import { input, readKeyboard } from './input.js';
 import { updateCamera, resetCamera } from './camera.js';
 import { player, resetPlayer, movePlayer } from '../entities/player.js';
@@ -24,6 +23,13 @@ import { RUN_SECONDS } from './clock.js';
 import { isEnded } from '../ui/screens.js';
 import { sfxEnding } from '../fx/sound.js';
 import { updatePair, resetPair, callPair, unlockPair } from '../allies/pair.js';
+
+// Space on the start screen: the demo stops and a fresh run begins
+export function startGame() {
+  session.title = false;
+  resetGame();
+  input.swingPressed = false;
+}
 
 export function resetGame() {
   resetPlayer();
@@ -53,8 +59,8 @@ export function update() {
   if (isEnded(game.state)) {
     game.overTime += STEP;
     // Autoplay keeps the demo rolling for recording
-    if (AUTOPLAY && game.overTime > 3) resetGame();
-    else if (!AUTOPLAY && game.overTime > 0.5 && input.restartPressed) resetGame();
+    if (botPlays() && game.overTime > 3) resetGame();
+    else if (!botPlays() && game.overTime > 0.5 && input.restartPressed) resetGame();
     input.restartPressed = false;
     input.swingPressed = false;
     input.callPressed = false;
@@ -78,17 +84,17 @@ export function update() {
   updateSpawns();
   updateDeploy();
 
-  movePlayer(AUTOPLAY ? readAutoplay() : readKeyboard());
+  movePlayer(botPlays() ? readAutoplay() : readKeyboard());
   updateCamera(player.x, player.y);
 
   if (player.hurtTimer > 0) player.hurtTimer -= STEP;
   game.hitFlash = Math.max(0, game.hitFlash - STEP * 4);
 
-  if (AUTOPLAY) autoplaySwing();
+  if (botPlays()) autoplaySwing();
   else if (input.swingPressed || input.keys.has('Space') || input.keys.has('KeyJ')) startSwing(player.facing);
   input.swingPressed = false;
 
-  if (AUTOPLAY) autoplayCallPair();
+  if (botPlays()) autoplayCallPair();
   else if (input.callPressed) callPair();
   input.callPressed = false;
 
@@ -115,6 +121,7 @@ export function update() {
     player.hurtTimer = 0;
     sfxEnding(game.state);
     // Losing to the boss unlocks the Pair Programmer for later runs
-    if ((game.state === 'over' && game.bossPhase) || game.state === 'timeout') unlockPair();
+    // (the attract demo's losses don't count)
+    if (!session.title && (game.state === 'over' && game.bossPhase) || game.state === 'timeout') unlockPair();
   }
 }

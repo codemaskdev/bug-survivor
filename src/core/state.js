@@ -1,4 +1,16 @@
 import { FIRST_WAVE_AT } from '../config.js';
+import { AUTOPLAY } from './params.js';
+
+// Outside the run itself: the start screen. Until Space is pressed, the bot
+// plays a dimmed attract-mode demo behind it. ?autoplay=1 skips it entirely.
+export const session = {
+  title: !AUTOPLAY,
+};
+
+// Who is playing right now: the bot (autoplay or the attract demo) or a human
+export function botPlays() {
+  return AUTOPLAY || session.title;
+}
 
 // The run's shared state. Modules own their own bits (fx, swing, linter, bot),
 // this is what everyone needs to see.

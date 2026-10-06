@@ -9,8 +9,9 @@
 //   node tools/replay-check.mjs --update   re-record the golden hashes
 //                                          (only after an intentional change)
 //
-// Scenarios: autoplay with seeds 1, 2 and 7, plus a scripted human who walks,
-// swings, picks cards with keys and mouse, dies and restarts.
+// Scenarios: autoplay with seeds 1, 2 and 7, plus a scripted human who watches
+// the start screen for a while, then walks, swings, picks cards with keys and
+// mouse, dies and restarts.
 // Node built-ins only, no npm deps.
 
 import fs from 'fs';
@@ -175,10 +176,19 @@ async function runScenario(name, entry) {
     if (i === 1200) fire('window:resize');
   };
 
+  // Before that, the human sits on the start screen (the attract demo plays
+  // behind it) and hovers the video link, then presses Space
+  const TITLE_FRAMES = 300;
+  const titleInput = (i) => {
+    if (i === 60) fire('canvas:mousemove', { clientX: 480, clientY: 597 });
+    if (i === 150) fire('canvas:mousemove', { clientX: 480, clientY: 400 });
+    if (i === TITLE_FRAMES - 1) key('keydown', 'Space');
+  };
+
   for (let i = 0; i < SECONDS * 60; i++) {
     now += 1000 / 60;
     frameTexts = [];
-    if (manual) scriptInput(i);
+    if (manual) i < TITLE_FRAMES ? titleInput(i) : scriptInput(i - TITLE_FRAMES);
     const cb = rafCb;
     rafCb = null;
     cb(now);

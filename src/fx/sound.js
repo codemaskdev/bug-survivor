@@ -3,6 +3,8 @@
 // audio context is created on the first key press or click (input.js and
 // cards.js call unlockAudio). Without that, or without Web Audio, every
 // sound call is silently skipped. M toggles mute.
+import { session } from '../core/state.js';
+
 let audio = null;
 let master = null;
 let muted = loadMuted();
@@ -18,6 +20,11 @@ export function unlockAudio() {
   master = audio.createGain();
   master.gain.value = muted ? 0 : MASTER_VOLUME;
   master.connect(audio.destination);
+}
+
+// The attract demo behind the start screen plays silently
+function live() {
+  return audio && !session.title;
 }
 
 export function isMuted() {
@@ -95,45 +102,45 @@ function noise({ at = 0, dur = 0.05, vol = 0.2, type = 'bandpass', freq = 2000, 
 // Keyboard swing that hits: a sharp click plus a plastic thock.
 // `loud` is the Mechanical Keyboard level: lower, heavier, louder.
 export function sfxClack(loud = 0) {
-  if (!audio) return;
+  if (!live()) return;
   noise({ dur: 0.04, vol: 0.25 + loud * 0.04, freq: 3200 - loud * 300, q: 2 });
   tone({ type: 'triangle', from: 260 - loud * 20, to: 140, dur: 0.07, vol: 0.18 + loud * 0.03 });
 }
 
 // A bug dies: short wet squish
 export function sfxSquish() {
-  if (!audio || throttled('squish', 0.035)) return;
+  if (!live() || throttled('squish', 0.035)) return;
   tone({ type: 'sine', from: 320, to: 70, dur: 0.09, vol: 0.12 });
   noise({ dur: 0.05, vol: 0.06, type: 'lowpass', freq: 900 });
 }
 
 // Commit picked up: a tiny bright blip
 export function sfxPickup() {
-  if (!audio || throttled('pickup', 0.03)) return;
+  if (!live() || throttled('pickup', 0.03)) return;
   tone({ type: 'sine', from: 1320, to: 1760, dur: 0.06, vol: 0.06, glide: 0.03 });
 }
 
 // Level up: rising C-major arpeggio
 export function sfxLevelUp() {
-  if (!audio) return;
+  if (!live()) return;
   [523, 659, 784, 1047].forEach((f, i) => tone({ type: 'triangle', from: f, at: i * 0.07, dur: 0.18, vol: 0.12 }));
 }
 
 // Picking a card
 export function sfxSelect() {
-  if (!audio) return;
+  if (!live()) return;
   tone({ type: 'square', from: 660, to: 990, dur: 0.08, vol: 0.1, glide: 0.04 });
 }
 
 // Linter shot: a quick electric zap
 export function sfxZap() {
-  if (!audio || throttled('zap', 0.05)) return;
+  if (!live() || throttled('zap', 0.05)) return;
   tone({ type: 'sawtooth', from: 1400, to: 300, dur: 0.07, vol: 0.05 });
 }
 
 // Rubber duck peck: squeak up and back down
 export function sfxSqueak() {
-  if (!audio) return;
+  if (!live()) return;
   const t = audio.currentTime;
   const osc = audio.createOscillator();
   const g = audio.createGain();
@@ -151,27 +158,27 @@ export function sfxSqueak() {
 
 // Burnout: soft fire crackle (called often; throttled to sparse pops)
 export function sfxCrackle() {
-  if (!audio || throttled('crackle', 0.09)) return;
+  if (!live() || throttled('crackle', 0.09)) return;
   noise({ dur: 0.025, vol: 0.05, type: 'highpass', freq: 2500 });
 }
 
 // git revert: a big rewind whoosh
 export function sfxWhoosh() {
-  if (!audio) return;
+  if (!live()) return;
   noise({ dur: 0.6, vol: 0.22, freq: 3500, freqTo: 250, q: 0.8 });
   tone({ type: 'sine', from: 900, to: 120, dur: 0.6, vol: 0.08 });
 }
 
 // Something hits the boss: a low thud
 export function sfxBossHit() {
-  if (!audio || throttled('bossHit', 0.08)) return;
+  if (!live() || throttled('bossHit', 0.08)) return;
   tone({ type: 'sine', from: 140, to: 60, dur: 0.1, vol: 0.18 });
   noise({ dur: 0.03, vol: 0.06, type: 'lowpass', freq: 600 });
 }
 
 // Boss Rollback: a wobbly reverse sweep up
 export function sfxRollback() {
-  if (!audio) return;
+  if (!live()) return;
   const t = audio.currentTime;
   const osc = audio.createOscillator();
   const lfo = audio.createOscillator();
@@ -193,14 +200,14 @@ export function sfxRollback() {
 
 // Coffee break: two soft, warm notes
 export function sfxCoffee() {
-  if (!audio) return;
+  if (!live()) return;
   tone({ type: 'sine', from: 587, at: 0, dur: 0.25, vol: 0.1 });
   tone({ type: 'sine', from: 880, at: 0.12, dur: 0.4, vol: 0.08 });
 }
 
 // Pair Programmer lands: a deep boom and a power chord
 export function sfxPairDrop() {
-  if (!audio) return;
+  if (!live()) return;
   tone({ type: 'sine', from: 120, to: 40, dur: 0.4, vol: 0.3 });
   noise({ dur: 0.25, vol: 0.15, type: 'lowpass', freq: 500 });
   [196, 294, 392].forEach((f) => tone({ type: 'sawtooth', from: f, at: 0.08, dur: 0.5, vol: 0.035 }));
@@ -208,14 +215,14 @@ export function sfxPairDrop() {
 
 // Pair Programmer's machine guns: rapid dry ticks
 export function sfxGun() {
-  if (!audio || throttled('gun', 0.06)) return;
+  if (!live() || throttled('gun', 0.06)) return;
   noise({ dur: 0.03, vol: 0.07, type: 'highpass', freq: 1800 });
   tone({ type: 'square', from: 180, to: 90, dur: 0.03, vol: 0.03 });
 }
 
 // Endings: a short jingle each
 export function sfxEnding(kind) {
-  if (!audio) return;
+  if (!live()) return;
   if (kind === 'won') {
     // Bright fanfare up to a held major chord
     [523, 659, 784].forEach((f, i) => tone({ type: 'triangle', from: f, at: i * 0.1, dur: 0.15, vol: 0.12 }));
@@ -237,7 +244,7 @@ export function sfxEnding(kind) {
 // up and down, fading in and out. Meant to build tension, not to startle.
 // (0.08 here x 0.5 master = the same level as before the master channel.)
 export function playSiren(seconds = 3) {
-  if (!audio) return;
+  if (!live()) return;
   const now = audio.currentTime;
   const gain = audio.createGain();
   gain.gain.setValueAtTime(0, now);

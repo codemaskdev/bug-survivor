@@ -1,7 +1,6 @@
 import { STEP } from '../config.js';
-import { AUTOPLAY } from '../core/params.js';
 import { rng } from '../core/rng.js';
-import { game } from '../core/state.js';
+import { game, botPlays, session } from '../core/state.js';
 import { input } from '../core/input.js';
 import { xpToNext } from '../entities/commits.js';
 import { UPGRADES } from './upgrades.js';
@@ -35,7 +34,7 @@ export function openUpgradeCards() {
   game.levelupTime = 0;
   game.cardChoice = 1;
   game.offer = drawOffer();
-  game.botPick = AUTOPLAY ? chooseCard(game.offer) : -1;
+  game.botPick = botPlays() ? chooseCard(game.offer) : -1;
 }
 
 export function pickCard(i) {
@@ -65,8 +64,9 @@ export function handleCardKey(code) {
 // highlights its pick, then takes it after a beat.
 export function updateLevelup() {
   game.levelupTime += STEP;
-  if (AUTOPLAY) {
+  if (botPlays()) {
     if (game.levelupTime > 0.5) game.cardChoice = game.botPick;
-    if (game.levelupTime > 1.4) pickCard(game.botPick);
+    // Behind the start screen the cards aren't shown, so don't hold the demo up
+    if (game.levelupTime > (session.title ? 0.3 : 1.4)) pickCard(game.botPick);
   }
 }

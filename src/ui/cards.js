@@ -1,7 +1,6 @@
 import { VIEW_W, VIEW_H } from '../config.js';
-import { AUTOPLAY } from '../core/params.js';
 import { canvas, ctx } from '../core/canvas.js';
-import { game } from '../core/state.js';
+import { game, botPlays } from '../core/state.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { pickCard } from '../upgrades/levelup.js';
 import { drawIcon } from './icons.js';
@@ -28,14 +27,14 @@ function cardAt(px, py) {
 }
 
 canvas.addEventListener('mousemove', (e) => {
-  if (game.state !== 'levelup' || AUTOPLAY) return;
+  if (game.state !== 'levelup' || botPlays()) return;
   const r = canvas.getBoundingClientRect();
   const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) game.cardChoice = i;
 });
 canvas.addEventListener('click', (e) => {
   unlockAudio();
-  if (game.state !== 'levelup' || AUTOPLAY) return;
+  if (game.state !== 'levelup' || botPlays()) return;
   const r = canvas.getBoundingClientRect();
   const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) pickCard(i);
@@ -140,7 +139,7 @@ export function drawUpgradeCards() {
   ctx.textAlign = 'center';
   ctx.font = '13px monospace';
   ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
-  ctx.fillText(AUTOPLAY ? 'bot is choosing…' : '1 / 2 / 3, click, or ← → + Enter',
+  ctx.fillText(botPlays() ? 'bot is choosing…' : '1 / 2 / 3, click, or ← → + Enter',
     VIEW_W / 2, cardRect(0).y + CARD_H + 40);
   ctx.restore();
 }

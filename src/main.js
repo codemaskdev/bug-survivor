@@ -9,7 +9,7 @@
 //   upgrades/  upgrade list and the level-up flow
 //   ai/        the autoplay bot
 //   fx/        particles, pop-ups, screen shake, glitch noise
-//   ui/        hud, upgrade cards, banners, game over
+//   ui/        start screen, hud, upgrade cards, banners, game over
 //   world/     the endless neon grid
 //   boss/      the Friday Deploy: entrance at 16:59 and the boss's attacks
 //   allies/    the Pair Programmer, backup you can call in the boss fight

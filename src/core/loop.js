@@ -1,6 +1,6 @@
 import { VIEW_W, VIEW_H, STEP } from '../config.js';
 import { ctx } from './canvas.js';
-import { game } from './state.js';
+import { game, session } from './state.js';
 import { update } from './game.js';
 import { drawGrid, drawVignette } from '../world/grid.js';
 import { camera } from './camera.js';
@@ -22,6 +22,7 @@ import { drawBanner } from '../ui/banner.js';
 import { drawUpgradeCards } from '../ui/cards.js';
 import { drawEnding, isEnded } from '../ui/screens.js';
 import { drawPair, drawPairHint } from '../allies/pair.js';
+import { drawTitle } from '../ui/title.js';
 
 // Fixed-step simulation, drawn once per animation frame
 let simTime = 0;
@@ -65,16 +66,21 @@ function frame(now) {
   drawFx();
   ctx.restore();
 
-  // Screen-fixed layers
-  drawRevert();
-  drawDeployWarning();
+  // Screen-fixed layers. On the start screen the demo gets no HUD,
+  // just the dimmed world under the title.
+  if (session.title) {
+    drawTitle(simTime);
+  } else {
+    drawRevert();
+    drawDeployWarning();
 
-  drawHud();
-  drawBossBar();
-  drawPairHint(simTime);
-  drawBanner();
-  if (game.state === 'levelup') drawUpgradeCards();
-  if (isEnded(game.state)) drawEnding();
+    drawHud();
+    drawBossBar();
+    drawPairHint(simTime);
+    drawBanner();
+    if (game.state === 'levelup') drawUpgradeCards();
+    if (isEnded(game.state)) drawEnding();
+  }
   requestAnimationFrame(frame);
 }
 

@@ -1,7 +1,7 @@
-import { AUTOPLAY } from './params.js';
-import { game } from './state.js';
+import { game, botPlays } from './state.js';
 import { handleCardKey } from '../upgrades/levelup.js';
 import { unlockAudio, toggleMute } from '../fx/sound.js';
+import { handleTitleKey } from '../ui/title.js';
 
 export const input = {
   keys: new Set(),
@@ -13,12 +13,13 @@ export const input = {
 window.addEventListener('keydown', (e) => {
   unlockAudio();
   input.keys.add(e.code);
+  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+  if (e.code === 'KeyM' && !e.repeat) toggleMute();
+  if (handleTitleKey(e.code)) return;
   if (e.code === 'KeyR' || e.code === 'Enter') input.restartPressed = true;
   if (e.code === 'Space' || e.code === 'KeyJ') input.swingPressed = true;
-  if (e.code === 'KeyM' && !e.repeat) toggleMute();
   if (e.code === 'KeyB') input.callPressed = true;
-  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
-  if (game.state === 'levelup' && !AUTOPLAY) handleCardKey(e.code);
+  if (game.state === 'levelup' && !botPlays()) handleCardKey(e.code);
 });
 window.addEventListener('keyup', (e) => input.keys.delete(e.code));
 window.addEventListener('blur', () => input.keys.clear());
