@@ -913,3 +913,13 @@ The game now lives in its own repo, split out of the CodeMask workspace with `gi
 What broke: nothing broke, and nothing needed fixing for Pages. Every import is relative and matches its file name's exact case (macOS doesn't care about case, GitHub Pages does), so I checked all 276 references by script, then served the committed files under a /bug-survivor/ subpath like Pages will: all 49 modules loaded, no console errors. The scan for secrets, API keys and local paths over every version of every file in the history found nothing. The one thing that will be public and can't be changed without rewriting history: the commit author email.
 
 Commit: `498601d`
+
+## 14:07 — Author email replaced in the release history
+
+> да, меняй email, история остаётся
+
+The release history showed the author's personal email on every commit, and the user didn't want it public. Instead of dropping the history, I replaced that email with their GitHub noreply address in all 89 commits of this repo, author and committer both, using git filter-branch. Nothing else changed: every commit's files, dates and message are byte-for-byte the same, so GitHub still links the commits to the same account. The CodeMask workspace repo wasn't touched.
+
+What surprised me: this breaks a rule in CLAUDE.md ("Never squash, amend or rewrite history"), knowingly and with the user's go-ahead, on a repo that had never been pushed. The commit hashes in this devlog were already different from this repo's hashes before the rewrite: they're the CodeMask workspace hashes, and `git subtree split` gives every commit a new one. The rewrite changed them once more, so the `Commit:` lines above point to the original workspace repo, not to this one. After the rewrite I deleted the backup refs and ran gc, and checked that the old address isn't in any object in .git.
+
+Commit: none, this was a history rewrite (main is now `7f1fbfe`)
