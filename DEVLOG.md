@@ -883,3 +883,33 @@ Switching to another tab, another window or minimizing now opens the same pause 
 What surprised me: the replay check's scripted human already sends a window blur halfway through, so it now hits the auto-pause, and its next scripted Space presses Resume instead of swinging. From there its run plays out differently: it dies at 56.5 s instead of 67.2 s and ends the 180 s on a fresh run (wave 2 instead of wave 12), with a third fewer canvas calls. I traced the restarts to make sure that was the whole story before re-recording its hash. Seeds 1, 2 and 7 are unchanged.
 
 Commit: `3f3fac3`
+
+## 14:02 — Ready for public release
+
+> Prepare Bug Survivor for public release, without touching the
+> CodeMask repo's history:
+>
+> 1. Use git subtree split on game/bug-survivor to create a standalone
+>    repo with the game's full commit history, in a new folder next to
+>    CodeMask (e.g. ~/Desktop/bug-survivor-release).
+> 2. Make it work on GitHub Pages: the game must load from index.html
+>    at the repo root over https (ES modules are fine there).
+> 3. Write a short README: what the game is, controls (WASD/arrows,
+>    Space/J, B for Pair Programmer, M mute, R restart), "built
+>    entirely by Claude Code, no hand-written code", link to DEVLOG.md
+>    and CLAUDE.md as the rules the AI followed, MIT license.
+> 4. Remove nothing from history. Check that no secrets, API keys or
+>    local paths are anywhere in the files or history.
+> 5. Don't push yet. Tell me the exact commands to create the GitHub
+>    repo and enable Pages, and I'll run them.
+>
+> The repo will live in my GitHub organization codemaskdev, as
+> codemaskdev/bug-survivor. Use that in the commands and in the
+> README links. The game URL will be
+> https://codemaskdev.github.io/bug-survivor/
+
+The game now lives in its own repo, split out of the CodeMask workspace with `git subtree split`: all 86 commits that touched game/bug-survivor, nothing rewritten (the split ran in a throwaway clone, so the CodeMask repo didn't even get a new branch). On top of that history: a README (what the game is, controls, built entirely by Claude Code, links to this devlog and CLAUDE.md), the MIT license, and an empty .nojekyll so GitHub Pages serves the files as they are instead of running them through Jekyll.
+
+What broke: nothing broke, and nothing needed fixing for Pages. Every import is relative and matches its file name's exact case (macOS doesn't care about case, GitHub Pages does), so I checked all 276 references by script, then served the committed files under a /bug-survivor/ subpath like Pages will: all 49 modules loaded, no console errors. The scan for secrets, API keys and local paths over every version of every file in the history found nothing. The one thing that will be public and can't be changed without rewriting history: the commit author email.
+
+Commit: `498601d`
