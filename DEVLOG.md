@@ -844,3 +844,32 @@ The game now remembers your longest run and most bugs smashed in localStorage an
 What broke: nothing broke. Seeds 1, 2 and 7 kept their hashes. The scripted human's gameplay is identical too (same HUD at the end); only its ending screen gained the personal-best line, so I re-recorded its hash.
 
 Commit: `b8abf97`
+
+## 13:51 — Keyboard notice for touch devices
+
+> The game is going public: players will arrive from a YouTube link
+> and know nothing about it. Add:
+>
+> 1. Start screen: game title, controls (WASD/arrows move, Space/J
+>    swing, B call Pair Programmer in the boss fight, M mute, Esc
+>    pause), "Press Space to start". Behind it, the autoplay bot plays
+>    as an attract-mode demo, dimmed.
+> 2. Pause menu on Esc: Resume, Restart, Sound on/off.
+> 3. On the start screen: "Built entirely by Claude Code — no
+>    hand-written code" and a "Watch how it was made" link, URL as a
+>    placeholder constant VIDEO_URL that I'll fill in after upload.
+> 4. Touch devices: instead of the game, a clear message that it needs
+>    a keyboard, with the same video link.
+> 5. Personal best: best survival time and most bugs smashed, saved in
+>    localStorage, shown on the start and end screens. New record =
+>    a little celebration.
+>
+> Keep the neon pixel style. ?autoplay=1 must skip the menu and behave
+> exactly as before, so the replay-check stays green and footage
+> recording still works. Commit as usual.
+
+On a device whose only pointer is a finger (phones, most tablets), the game doesn't load at all; instead there's a neon page saying it needs a keyboard, with the same "▶ Watch how it was made" link and the Claude Code line. Two small links at the bottom: watch the bot play (?autoplay=1, which needs no keyboard) and "I have a keyboard, let me play" (?keyboard=1) for tablets with a keyboard attached. To make that possible, main.js now loads the game modules only after the check.
+
+What surprised me: the ⌨ symbol I first put in the headline rendered as a meaningless bar in Chrome's monospace font, so I removed it. I couldn't emulate a real touch screen from the desktop browser, so I checked the page by rendering it directly and squeezing it to 375 px wide: no overflow. The replay check still matches all four golden hashes.
+
+Commit: `bb9522d`
