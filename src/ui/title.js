@@ -4,6 +4,7 @@ import { session } from '../core/state.js';
 import { startGame } from '../core/game.js';
 import { glitchNoise } from '../fx/glitch.js';
 import { isMuted } from '../fx/sound.js';
+import { hasBest, bestText } from '../core/records.js';
 
 // The start screen, drawn over the attract demo (the bot playing, dimmed).
 // The middle of the screen stays clear so CodeMask is visible fighting there.
@@ -73,6 +74,14 @@ export function drawTitle(time) {
   ctx.fillStyle = 'rgba(230, 235, 242, 0.85)';
   ctx.fillText('FRI 16:57. Three minutes until the weekend.', VIEW_W / 2, 134);
   ctx.fillText('Smash the bugs, grab the commits, survive the Friday Deploy.', VIEW_W / 2, 156);
+  if (hasBest()) {
+    ctx.font = 'bold 15px monospace';
+    ctx.fillStyle = '#ffd23f';
+    ctx.shadowColor = '#ffd23f';
+    ctx.shadowBlur = 8;
+    ctx.fillText(`PERSONAL BEST  ${bestText()}`, VIEW_W / 2, 192);
+    ctx.shadowBlur = 0;
+  }
 
   // Press Space, pulsing
   ctx.font = 'bold 28px monospace';

@@ -21,7 +21,8 @@ import { updateBanners, resetBanners } from '../ui/banner.js';
 import { updateDeploy, resetDeploy } from '../boss/deploy.js';
 import { RUN_SECONDS } from './clock.js';
 import { isEnded } from '../ui/screens.js';
-import { sfxEnding } from '../fx/sound.js';
+import { sfxEnding, sfxRecord } from '../fx/sound.js';
+import { recordRun } from './records.js';
 import { updatePair, resetPair, callPair, unlockPair } from '../allies/pair.js';
 
 // Space on the start screen: the demo stops and a fresh run begins
@@ -121,6 +122,8 @@ export function update() {
     game.overTime = 0;
     player.hurtTimer = 0;
     sfxEnding(game.state);
+    // Personal best: human runs only
+    if (!botPlays() && recordRun(game.roundTime, game.smashed, game.state === 'won')) sfxRecord();
     // Losing to the boss unlocks the Pair Programmer for later runs
     // (the attract demo's losses don't count)
     if (!session.title && (game.state === 'over' && game.bossPhase) || game.state === 'timeout') unlockPair();

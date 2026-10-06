@@ -240,6 +240,13 @@ export function sfxEnding(kind) {
   }
 }
 
+// New personal best: a sparkly run up, after the ending jingle
+export function sfxRecord() {
+  if (!live()) return;
+  [784, 988, 1175, 1568, 1976].forEach((f, i) => tone({ type: 'square', from: f, at: 1.1 + i * 0.07, dur: 0.12, vol: 0.05 }));
+  tone({ type: 'triangle', from: 1568, at: 1.45, dur: 0.6, vol: 0.08 });
+}
+
 // A soft, tense warning tone: two slightly detuned sines slowly gliding
 // up and down, fading in and out. Meant to build tension, not to startle.
 // (0.08 here x 0.5 master = the same level as before the master channel.)
