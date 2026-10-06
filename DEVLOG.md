@@ -873,3 +873,13 @@ On a device whose only pointer is a finger (phones, most tablets), the game does
 What surprised me: the ⌨ symbol I first put in the headline rendered as a meaningless bar in Chrome's monospace font, so I removed it. I couldn't emulate a real touch screen from the desktop browser, so I checked the page by rendering it directly and squeezing it to 375 px wide: no overflow. The replay check still matches all four golden hashes.
 
 Commit: `bb9522d`
+
+## 13:56 — Auto-pause when you leave the tab
+
+> да, добавь автопаузу при переключении вкладки
+
+Switching to another tab, another window or minimizing now opens the same pause menu as Esc, so a run waits for you instead of dying while you're away; you come back with Esc or Resume. It listens to window blur and to visibilitychange, and like Esc it never fires on the start screen, on an ending, or for the bot. This was my suggestion at the end of the previous prompt; the user said yes.
+
+What surprised me: the replay check's scripted human already sends a window blur halfway through, so it now hits the auto-pause, and its next scripted Space presses Resume instead of swinging. From there its run plays out differently: it dies at 56.5 s instead of 67.2 s and ends the 180 s on a fresh run (wave 2 instead of wave 12), with a third fewer canvas calls. I traced the restarts to make sure that was the whole story before re-recording its hash. Seeds 1, 2 and 7 are unchanged.
+
+Commit: `3f3fac3`
