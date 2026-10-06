@@ -728,3 +728,32 @@ When the boss walks in, CodeMask gets back 30% of its max HP (of the reduced max
 What surprised me: the four changes together made the boss a lot easier for strong players. Final numbers over 16 seeds: the human-like fighter reaches the boss in 12/16 runs (6/16 before this prompt) and wins 7 (2 before). But the plain fighter bot and the normal autoplay bot now reach the boss and win in 16/16 runs; before this prompt the normal bot won 8/16. The calm, the extra commits (more levels by 16:59), the softer waves and the heal all add up. The goal of this prompt is met, but the boss is no longer a 50/50 for the demo bot; I'm leaving that call to the user instead of quietly retuning the boss.
 
 Commit: `9f2e82e`
+
+## 13:41 — Replay check keeps every listener
+
+> The game is going public: players will arrive from a YouTube link
+> and know nothing about it. Add:
+>
+> 1. Start screen: game title, controls (WASD/arrows move, Space/J
+>    swing, B call Pair Programmer in the boss fight, M mute, Esc
+>    pause), "Press Space to start". Behind it, the autoplay bot plays
+>    as an attract-mode demo, dimmed.
+> 2. Pause menu on Esc: Resume, Restart, Sound on/off.
+> 3. On the start screen: "Built entirely by Claude Code — no
+>    hand-written code" and a "Watch how it was made" link, URL as a
+>    placeholder constant VIDEO_URL that I'll fill in after upload.
+> 4. Touch devices: instead of the game, a clear message that it needs
+>    a keyboard, with the same video link.
+> 5. Personal best: best survival time and most bugs smashed, saved in
+>    localStorage, shown on the start and end screens. New record =
+>    a little celebration.
+>
+> Keep the neon pixel style. ?autoplay=1 must skip the menu and behave
+> exactly as before, so the replay-check stays green and footage
+> recording still works. Commit as usual.
+
+First step, before any menu code: the replay check's fake browser kept only one listener per event, and the start screen needs a second click listener on the canvas (for the video link). Now it keeps all of them and calls them in order, like a real browser.
+
+What broke: nothing broke. All four golden hashes still match.
+
+Commit: `eadf185`
