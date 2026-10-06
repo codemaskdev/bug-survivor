@@ -7,6 +7,7 @@ import { isMuted, toggleMute, sfxSelect } from '../fx/sound.js';
 
 // Esc pauses a run (also while the upgrade cards are up) and shows a small
 // menu: Resume, Restart, Sound. Arrows/WS + Enter/Space, or the mouse.
+// Switching to another tab or window pauses too, so nobody dies while away.
 // Not available to the bot: autoplay and the attract demo never pause.
 
 const ITEMS = [
@@ -47,10 +48,23 @@ function canPause() {
   return !botPlays() && !isEnded(game.state);
 }
 
+function pause() {
+  if (session.paused || !canPause()) return;
+  session.paused = true;
+  choice = 0;
+}
+
 function activate(i) {
   sfxSelect();
   ITEMS[i].run();
 }
+
+// Leaving the page: blur covers other windows, visibilitychange (which
+// bubbles up from document) covers hidden tabs and minimizing
+window.addEventListener('blur', pause);
+window.addEventListener('visibilitychange', () => {
+  if (document.hidden) pause();
+});
 
 canvas.addEventListener('mousemove', (e) => {
   if (!session.paused) return;
@@ -70,8 +84,7 @@ canvas.addEventListener('click', (e) => {
 export function handlePauseKey(code) {
   if (!session.paused) {
     if (code !== 'Escape' || !canPause()) return false;
-    session.paused = true;
-    choice = 0;
+    pause();
     return true;
   }
   if (code === 'Escape') resume();
