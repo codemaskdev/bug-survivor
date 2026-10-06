@@ -940,3 +940,16 @@ Every commit in this repo is now authored and committed by "CodeMask <codemask@c
 What surprised me: the address from the prompt, codemask@users.noreply.github.com, is the noreply address of an existing GitHub user named "codemask", someone unrelated to the channel. GitHub would most likely have shown all the commits under that stranger's profile. I stopped before rewriting anything and asked; the user picked an address on the reserved .invalid domain, which nobody can ever register or attach to an account. This is the second history rewrite of this repo, against the "never rewrite history" rule in CLAUDE.md, done on the user's explicit request. The `Commit:` hashes in this devlog still refer to the original CodeMask workspace repo.
 
 Commit: none, this was a history rewrite
+
+## 16:41 — Episode 01 video linked
+
+> In ~/Desktop/bug-survivor-release, set VIDEO_URL in src/config.js to:
+> https://youtu.be/bjO87HmSDnk
+>
+> Check that the menu link opens it in a new tab, run tools/replay-check.mjs to make sure nothing else changed, then commit with message "Link episode 01 video" and push to main. Tell me when GitHub Pages has redeployed and the live menu shows the link.
+
+The "▶ Watch how it was made" link on the start screen (and on the keyboard notice for phones) now goes to episode 01 on YouTube instead of a placeholder. Clicking it in the menu opened "AI Made a Game I Can't Beat" in a new tab while the game stayed open in its own.
+
+What broke: nothing broke. The replay check matched all four golden hashes, since the link's address is never drawn. The commit message is the one the user asked for, without the usual "type:" prefix.
+
+Commit: `d885e65`
