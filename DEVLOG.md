@@ -923,3 +923,20 @@ The release history showed the author's personal email on every commit, and the 
 What surprised me: this breaks a rule in CLAUDE.md ("Never squash, amend or rewrite history"), knowingly and with the user's go-ahead, on a repo that had never been pushed. The commit hashes in this devlog were already different from this repo's hashes before the rewrite: they're the CodeMask workspace hashes, and `git subtree split` gives every commit a new one. The rewrite changed them once more, so the `Commit:` lines above point to the original workspace repo, not to this one. After the rewrite I deleted the backup refs and ran gc, and checked that the old address isn't in any object in .git.
 
 Commit: none, this was a history rewrite (main is now `7f1fbfe`)
+
+## 14:47 — Commits signed as CodeMask
+
+> Rewrite the author and committer of all commits in
+> bug-survivor-release to "CodeMask <codemask@users.noreply.github.com>"
+> so nothing links to my personal GitHub account. Use git filter-repo
+> (install it if needed) or filter-branch. Keep commit messages, dates
+> and order unchanged. Then force-push to codemaskdev/bug-survivor main
+> and confirm Pages still serves the game. Also set this repo's local
+> git config user.name/user.email to the same CodeMask identity so
+> future pushes (like the VIDEO_URL fix) stay anonymous.
+
+Every commit in this repo is now authored and committed by "CodeMask <codemask@codemaskdev.invalid>", so none of them link to a personal GitHub account. Messages, dates (with time zones), order and the files in every commit are exactly as before. This repo's local git config uses the same identity for future commits. The change was force-pushed to GitHub.
+
+What surprised me: the address from the prompt, codemask@users.noreply.github.com, is the noreply address of an existing GitHub user named "codemask", someone unrelated to the channel. GitHub would most likely have shown all the commits under that stranger's profile. I stopped before rewriting anything and asked; the user picked an address on the reserved .invalid domain, which nobody can ever register or attach to an account. This is the second history rewrite of this repo, against the "never rewrite history" rule in CLAUDE.md, done on the user's explicit request. The `Commit:` hashes in this devlog still refer to the original CodeMask workspace repo.
+
+Commit: none, this was a history rewrite
