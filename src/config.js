@@ -27,5 +27,5 @@ export const COMMIT_MAGNET = 70;    // px: commits start drifting toward CodeMas
 export const LINT_SPEED = 420;      // px per second
 export const LINT_RANGE = 520;      // px before a shot fizzles out
 
-// "Watch how it was made": the YouTube video. Placeholder until it's uploaded.
-export const VIDEO_URL = 'https://youtu.be/VIDEO_ID';
+// "Watch how it was made": episode 01 on YouTube.
+export const VIDEO_URL = 'https://youtu.be/bjO87HmSDnk';
