@@ -9,13 +9,21 @@
 //   upgrades/  upgrade list and the level-up flow
 //   ai/        the autoplay bot
 //   fx/        particles, pop-ups, screen shake, glitch noise
-//   ui/        start screen, hud, upgrade cards, banners, game over
+//   ui/        start screen, pause menu, touch-device notice, hud, upgrade cards, banners, game over
 //   world/     the endless neon grid
 //   boss/      the Friday Deploy: entrance at 16:59 and the boss's attacks
 //   allies/    the Pair Programmer, backup you can call in the boss fight
 
-import './core/input.js';
-import './ui/cards.js';
-import { start } from './core/loop.js';
+import { AUTOPLAY } from './core/params.js';
+import { needsKeyboardNotice, showKeyboardNotice } from './ui/touch.js';
 
-start();
+// Touch-only devices get a "needs a keyboard" page instead of the game
+// (the autoplay demo is fine to watch anywhere)
+if (!AUTOPLAY && needsKeyboardNotice()) {
+  showKeyboardNotice();
+} else {
+  await import('./core/input.js');
+  await import('./ui/cards.js');
+  const { start } = await import('./core/loop.js');
+  start();
+}
