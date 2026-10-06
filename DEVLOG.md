@@ -757,3 +757,32 @@ First step, before any menu code: the replay check's fake browser kept only one 
 What broke: nothing broke. All four golden hashes still match.
 
 Commit: `eadf185`
+
+## 13:46 — Start screen with an attract-mode demo
+
+> The game is going public: players will arrive from a YouTube link
+> and know nothing about it. Add:
+>
+> 1. Start screen: game title, controls (WASD/arrows move, Space/J
+>    swing, B call Pair Programmer in the boss fight, M mute, Esc
+>    pause), "Press Space to start". Behind it, the autoplay bot plays
+>    as an attract-mode demo, dimmed.
+> 2. Pause menu on Esc: Resume, Restart, Sound on/off.
+> 3. On the start screen: "Built entirely by Claude Code — no
+>    hand-written code" and a "Watch how it was made" link, URL as a
+>    placeholder constant VIDEO_URL that I'll fill in after upload.
+> 4. Touch devices: instead of the game, a clear message that it needs
+>    a keyboard, with the same video link.
+> 5. Personal best: best survival time and most bugs smashed, saved in
+>    localStorage, shown on the start and end screens. New record =
+>    a little celebration.
+>
+> Keep the neon pixel style. ?autoplay=1 must skip the menu and behave
+> exactly as before, so the replay-check stays green and footage
+> recording still works. Commit as usual.
+
+Opening the game now shows a start screen: the title, a one-line pitch, the controls, a pulsing "PRESS SPACE TO START", the "Built entirely by Claude Code — no hand-written code" line and a clickable "▶ Watch how it was made" link (VIDEO_URL in config.js, still a placeholder). Behind it the autoplay bot plays a silent, dimmed demo; Space throws that run away and starts a fresh one. ?autoplay=1 skips the screen entirely.
+
+What surprised me: the first layout put the controls panel in the middle of the screen, which is exactly where the camera keeps CodeMask, so the demo was hidden under the text. I moved the controls to a two-column strip at the bottom and left the middle clear. Also, the replay check proved the point: seeds 1, 2 and 7 kept their exact hashes; only the scripted human changed (it now sits on the start screen for 5 seconds, hovers the link, then presses Space), so I re-recorded that one.
+
+Commit: `1f0b97d`
