@@ -786,3 +786,32 @@ Opening the game now shows a start screen: the title, a one-line pitch, the cont
 What surprised me: the first layout put the controls panel in the middle of the screen, which is exactly where the camera keeps CodeMask, so the demo was hidden under the text. I moved the controls to a two-column strip at the bottom and left the middle clear. Also, the replay check proved the point: seeds 1, 2 and 7 kept their exact hashes; only the scripted human changed (it now sits on the start screen for 5 seconds, hovers the link, then presses Space), so I re-recorded that one.
 
 Commit: `1f0b97d`
+
+## 13:48 — Pause menu
+
+> The game is going public: players will arrive from a YouTube link
+> and know nothing about it. Add:
+>
+> 1. Start screen: game title, controls (WASD/arrows move, Space/J
+>    swing, B call Pair Programmer in the boss fight, M mute, Esc
+>    pause), "Press Space to start". Behind it, the autoplay bot plays
+>    as an attract-mode demo, dimmed.
+> 2. Pause menu on Esc: Resume, Restart, Sound on/off.
+> 3. On the start screen: "Built entirely by Claude Code — no
+>    hand-written code" and a "Watch how it was made" link, URL as a
+>    placeholder constant VIDEO_URL that I'll fill in after upload.
+> 4. Touch devices: instead of the game, a clear message that it needs
+>    a keyboard, with the same video link.
+> 5. Personal best: best survival time and most bugs smashed, saved in
+>    localStorage, shown on the start and end screens. New record =
+>    a little celebration.
+>
+> Keep the neon pixel style. ?autoplay=1 must skip the menu and behave
+> exactly as before, so the replay-check stays green and footage
+> recording still works. Commit as usual.
+
+Esc now freezes the run and opens a menu with Resume, Restart and Sound on/off, driven by arrows/WS + Enter/Space or the mouse; Esc again resumes. It works while the upgrade cards are up too, and it's off for the bot (autoplay and the start-screen demo never pause). The replay check's scripted human now visits the pause menu twice: once to look around and resume, once to restart.
+
+What surprised me: the pause menu's buttons sit on top of the upgrade cards, so clicking Resume would also have picked the card under the mouse on the same click. Now the cards slide back in after a pause and ignore picks for 0.3 s. Seeds 1, 2 and 7 kept their hashes; only the scripted human's changed.
+
+Commit: `c7fca01`
