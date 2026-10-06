@@ -2,6 +2,7 @@ import { game, botPlays } from './state.js';
 import { handleCardKey } from '../upgrades/levelup.js';
 import { unlockAudio, toggleMute } from '../fx/sound.js';
 import { handleTitleKey } from '../ui/title.js';
+import { handlePauseKey } from '../ui/pause.js';
 
 export const input = {
   keys: new Set(),
@@ -15,7 +16,7 @@ window.addEventListener('keydown', (e) => {
   input.keys.add(e.code);
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
-  if (handleTitleKey(e.code)) return;
+  if (handleTitleKey(e.code) || handlePauseKey(e.code)) return;
   if (e.code === 'KeyR' || e.code === 'Enter') input.restartPressed = true;
   if (e.code === 'Space' || e.code === 'KeyJ') input.swingPressed = true;
   if (e.code === 'KeyB') input.callPressed = true;

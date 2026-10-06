@@ -1,10 +1,12 @@
 import { FIRST_WAVE_AT } from '../config.js';
 import { AUTOPLAY } from './params.js';
 
-// Outside the run itself: the start screen. Until Space is pressed, the bot
-// plays a dimmed attract-mode demo behind it. ?autoplay=1 skips it entirely.
+// Outside the run itself: the start screen and the pause menu. Until Space is
+// pressed, the bot plays a dimmed attract-mode demo behind the start screen.
+// ?autoplay=1 skips it entirely.
 export const session = {
   title: !AUTOPLAY,
+  paused: false,         // Esc menu is up; the run is frozen
 };
 
 // Who is playing right now: the bot (autoplay or the attract demo) or a human

@@ -54,6 +54,7 @@ export function resetGame() {
 
 // One fixed simulation step
 export function update() {
+  if (session.paused) return;
   fadeRevertFlash();
   // Any ending: BUILD FAILED, DEPLOYED TO PRODUCTION or WEEKEND RUINED
   if (isEnded(game.state)) {

@@ -11,7 +11,7 @@
 //
 // Scenarios: autoplay with seeds 1, 2 and 7, plus a scripted human who watches
 // the start screen for a while, then walks, swings, picks cards with keys and
-// mouse, dies and restarts.
+// mouse, pauses (once to resume, once to restart), dies and restarts.
 // Node built-ins only, no npm deps.
 
 import fs from 'fs';
@@ -185,10 +185,31 @@ async function runScenario(name, entry) {
     if (i === TITLE_FRAMES - 1) key('keydown', 'Space');
   };
 
+  // Two short trips to the pause menu; the usual script waits meanwhile.
+  // Returns false outside those windows.
+  const pauseInput = (i) => {
+    const steps = {
+      1500: () => key('keydown', 'Escape'),
+      1530: () => key('keydown', 'ArrowDown'),
+      1550: () => key('keydown', 'KeyS'),
+      1570: () => key('keydown', 'ArrowUp'),
+      1590: () => fire('canvas:mousemove', { clientX: 480, clientY: 290 }),
+      1620: () => key('keydown', 'Escape'),
+      6000: () => key('keydown', 'Escape'),
+      6020: () => key('keydown', 'ArrowDown'),
+      6040: () => key('keydown', 'Enter'),
+    };
+    if (steps[i]) steps[i]();
+    return (i >= 1500 && i <= 1620) || (i >= 6000 && i <= 6040);
+  };
+
   for (let i = 0; i < SECONDS * 60; i++) {
     now += 1000 / 60;
     frameTexts = [];
-    if (manual) i < TITLE_FRAMES ? titleInput(i) : scriptInput(i - TITLE_FRAMES);
+    if (manual) {
+      if (i < TITLE_FRAMES) titleInput(i);
+      else if (!pauseInput(i - TITLE_FRAMES)) scriptInput(i - TITLE_FRAMES);
+    }
     const cb = rafCb;
     rafCb = null;
     cb(now);

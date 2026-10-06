@@ -1,6 +1,6 @@
 import { VIEW_W, VIEW_H } from '../config.js';
 import { canvas, ctx } from '../core/canvas.js';
-import { game, botPlays } from '../core/state.js';
+import { game, botPlays, session } from '../core/state.js';
 import { UPGRADES } from '../upgrades/upgrades.js';
 import { pickCard } from '../upgrades/levelup.js';
 import { drawIcon } from './icons.js';
@@ -27,14 +27,14 @@ function cardAt(px, py) {
 }
 
 canvas.addEventListener('mousemove', (e) => {
-  if (game.state !== 'levelup' || botPlays()) return;
+  if (game.state !== 'levelup' || botPlays() || session.paused) return;
   const r = canvas.getBoundingClientRect();
   const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) game.cardChoice = i;
 });
 canvas.addEventListener('click', (e) => {
   unlockAudio();
-  if (game.state !== 'levelup' || botPlays()) return;
+  if (game.state !== 'levelup' || botPlays() || session.paused) return;
   const r = canvas.getBoundingClientRect();
   const i = cardAt((e.clientX - r.left) * VIEW_W / r.width, (e.clientY - r.top) * VIEW_H / r.height);
   if (i >= 0) pickCard(i);

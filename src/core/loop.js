@@ -23,6 +23,7 @@ import { drawUpgradeCards } from '../ui/cards.js';
 import { drawEnding, isEnded } from '../ui/screens.js';
 import { drawPair, drawPairHint } from '../allies/pair.js';
 import { drawTitle } from '../ui/title.js';
+import { drawPause } from '../ui/pause.js';
 
 // Fixed-step simulation, drawn once per animation frame
 let simTime = 0;
@@ -80,6 +81,7 @@ function frame(now) {
     drawBanner();
     if (game.state === 'levelup') drawUpgradeCards();
     if (isEnded(game.state)) drawEnding();
+    if (session.paused) drawPause(simTime);
   }
   requestAnimationFrame(frame);
 }

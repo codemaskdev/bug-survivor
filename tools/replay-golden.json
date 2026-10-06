@@ -33,14 +33,14 @@
       ]
     },
     "manual": {
-      "hash": "57c825daa030f95a",
-      "canvasCalls": 27549189,
+      "hash": "b36330aee6f580c1",
+      "canvasCalls": 32680573,
       "hud": [
-        "WAVE 8",
-        "HP 22",
-        "SMASHED 19",
-        "MECH 1  ·  BURNOUT 1",
-        "LVL 3   6/13 commits"
+        "WAVE 12",
+        "HP 4",
+        "SMASHED 53",
+        "MECH 2  ·  TESTS 1  ·  REVIEW 1  ·  DUCK 1",
+        "LVL 6   5/25 commits"
       ]
     }
   }
