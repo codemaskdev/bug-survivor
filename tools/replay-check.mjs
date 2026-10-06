@@ -134,10 +134,13 @@ async function runScenario(name, entry) {
     set(t, k, v) { mix('=' + k); mix(v); t[k] = v; return true; },
   });
 
+  // Every listener is kept, like a real browser: several modules listen to the same event
   const listeners = {};
+  const listen = (name, f) => (listeners[name] ||= []).push(f);
+  const fire = (name, e) => (listeners[name] || []).forEach((f) => f(e));
   const canvas = {
     getContext: () => ctx, style: {}, width: 0, height: 0,
-    addEventListener: (n, f) => (listeners['canvas:' + n] = f),
+    addEventListener: (n, f) => listen('canvas:' + n, f),
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 960, height: 640 }),
   };
   let rafCb = null, now = 0;
@@ -147,14 +150,14 @@ async function runScenario(name, entry) {
     performance: { now: () => now },
     requestAnimationFrame: (cb) => { rafCb = cb; return 1; },
     innerWidth: 1440, innerHeight: 900,
-    addEventListener: (n, f) => (listeners['window:' + n] = f),
+    addEventListener: (n, f) => listen('window:' + n, f),
   });
   globalThis.window = globalThis;
 
   await import(pathToFileURL(entry).href);
 
   // Scripted human: walks around, swings, picks cards, restarts after dying
-  const key = (type, code) => listeners['window:' + type]({ code, preventDefault() {} });
+  const key = (type, code) => fire('window:' + type, { code, preventDefault() {} });
   const DIRS = ['ArrowRight', 'KeyS', 'ArrowLeft', 'KeyW', 'KeyD', 'ArrowDown', 'KeyA', 'ArrowUp'];
   const scriptInput = (i) => {
     if (i % 50 === 0) {
@@ -164,12 +167,12 @@ async function runScenario(name, entry) {
     if (i % 17 === 0) key('keydown', i % 34 ? 'Space' : 'KeyJ');
     if (i % 17 === 3) { key('keyup', 'Space'); key('keyup', 'KeyJ'); }
     if (i % 41 === 0) key('keydown', ['Digit1', 'Digit2', 'Digit3', 'ArrowLeft', 'Enter'][(i / 41) % 5]);
-    if (i % 97 === 0) listeners['canvas:mousemove']({ clientX: 120 + (i % 700), clientY: 330 });
-    if (i % 131 === 0) listeners['canvas:click']({ clientX: 120 + (i % 700), clientY: 330 });
+    if (i % 97 === 0) fire('canvas:mousemove', { clientX: 120 + (i % 700), clientY: 330 });
+    if (i % 131 === 0) fire('canvas:click', { clientX: 120 + (i % 700), clientY: 330 });
     if (i % 300 === 0) key('keydown', 'KeyR');
     if (i % 300 === 2) key('keyup', 'KeyR');
-    if (i === 1000) listeners['window:blur']();
-    if (i === 1200) listeners['window:resize']();
+    if (i === 1000) fire('window:blur');
+    if (i === 1200) fire('window:resize');
   };
 
   for (let i = 0; i < SECONDS * 60; i++) {
