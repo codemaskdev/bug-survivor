@@ -49,6 +49,3 @@ the video.
   player moves and fights by itself, for recording gameplay footage.
 - Autoplay must be deterministic: use a seeded random generator
   (seed from ?seed=..., default 1), never Math.random().
-
-  The repo root also contains Avatar/ and episodes/ — separate projects.
-  Never modify or commit them from this session.
